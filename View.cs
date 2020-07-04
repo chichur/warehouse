@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace warehouse
 {
-    class FormView : Form1, IView
+    public class FormView : Form1, IView
     {
         int[] IView.InputPickets => throw new NotImplementedException();
     }
+
+    
 }
