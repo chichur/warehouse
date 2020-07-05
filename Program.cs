@@ -13,10 +13,12 @@ namespace warehouse
         /// </summary>
         [STAThread]
         static void Main()
-        {
+        {   
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormView());
+            FormView view = new FormView();
+            Presenter presenter = new Presenter(view);
+            Application.Run(view);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace warehouse
 {
-    partial class Form1
+    partial class FormView
     {
         /// <summary>
         /// Обязательная переменная конструктора.
@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.buttonSelectPlatform = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -42,7 +43,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 721F));
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(130, 142);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 5;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -50,8 +51,18 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(761, 506);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(444, 302);
             this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // buttonSelectPlatform
+            // 
+            this.buttonSelectPlatform.Location = new System.Drawing.Point(623, 188);
+            this.buttonSelectPlatform.Name = "buttonSelectPlatform";
+            this.buttonSelectPlatform.Size = new System.Drawing.Size(75, 23);
+            this.buttonSelectPlatform.TabIndex = 1;
+            this.buttonSelectPlatform.Text = "button1";
+            this.buttonSelectPlatform.UseVisualStyleBackColor = true;
+            this.buttonSelectPlatform.Click += new System.EventHandler(this.ButtonSelectPlatform_Click);
             // 
             // Form1
             // 
@@ -59,6 +70,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(761, 506);
+            this.Controls.Add(this.buttonSelectPlatform);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -70,6 +82,7 @@
         #endregion
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Button buttonSelectPlatform;
     }
 }
 
