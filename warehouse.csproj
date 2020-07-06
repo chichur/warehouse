@@ -148,6 +148,12 @@
     <Compile Include="FormView.Designer.cs">
       <DependentUpon>FormView.cs</DependentUpon>
     </Compile>
+    <Compile Include="Modals\InputPickectsModalForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Modals\InputPickectsModalForm.Designer.cs">
+      <DependentUpon>InputPickectsModalForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Platforms.cs" />
     <Compile Include="PlatformsHistory.cs" />
     <Compile Include="Presenter.cs" />
@@ -157,6 +163,9 @@
     <Compile Include="warehousedbContext.cs" />
     <EmbeddedResource Include="FormView.resx">
       <DependentUpon>FormView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Modals\InputPickectsModalForm.resx">
+      <DependentUpon>InputPickectsModalForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

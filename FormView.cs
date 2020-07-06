@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using warehouse.Modals;
 
 namespace warehouse
 {
@@ -18,7 +19,6 @@ namespace warehouse
     }
     public partial class FormView : Form, IView
     {
-        int[] IView.InputPickets => throw new NotImplementedException();
         public event EventHandler<EventArgs> SetCargo;
         public event EventHandler<EventArgs> SetPlatforms;
         bool rectangleFlag = false;
@@ -28,11 +28,12 @@ namespace warehouse
         public FormView()
         {
             InitializeComponent();
+            InitializeTableLayoutSettings();
         }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            InitializeTableLayoutSettings();
+            
         }
 
         private void InitializeTableLayoutSettings()
@@ -43,6 +44,7 @@ namespace warehouse
             float percentWidth = 100 / tableLayoutPanel1.RowCount;
             float percentHeight = 100 / tableLayoutPanel1.ColumnCount;
 
+            int counterPickets = 0;
             // Populate the GridStrip control with ToolStripButton controls.
             for (int i = 0; i < tableLayoutPanel1.ColumnCount; i++)
             {
@@ -52,7 +54,6 @@ namespace warehouse
                     // Create a new ToolStripButton control.
                     tableLayoutPanel1.RowStyles.Add(new RowStyle());
                     Button buttonPicket = new Button();
-                    buttonPicket.Text = "1";
                     buttonPicket.FlatStyle = FlatStyle.Flat;
                     buttonPicket.Dock = DockStyle.Fill;
                     buttonPicket.Click += new EventHandler(ButtonPicketClick);
@@ -64,6 +65,7 @@ namespace warehouse
                     tableLayoutPanel1.Controls.Add(buttonPicket, i, j);
                     // If this is the ToolStripButton control at cell (0,0),
                     // assign it as the empty cell button.
+                    counterPickets++;
                 }
             }
 
@@ -222,23 +224,64 @@ namespace warehouse
             RefrehsGrid(RefrehType.Full);
         }
 
-        public int[][] GetPlatforms()
+        public int?[] InputPickets
         {
-            int[][] platformsArr = new int[rectangles.Count][];
-            for (int i = 0; i < rectangles.Count; i++)
+            set
             {
-                int counter = 0;
-                platformsArr[i] = new int[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
-                for (int j = rectangles[i].X; j < rectangles[i].X + rectangles[i].Width + 1; j++)
-                    for (int k = rectangles[i].Y; k < rectangles[i].Y + rectangles[i].Height + 1; k++)
+                int k = 0;
+                for (int i = 0; i < tableLayoutPanel1.RowCount; i++)
+                    for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
                     {
-                        platformsArr[i][counter] = Int32.Parse(tableLayoutPanel1.GetControlFromPosition(j, k).Text);
-                        counter++;
+                        tableLayoutPanel1.GetControlFromPosition(j, i).Text = value[k].ToString();
+                        k++;
                     }
                         
             }
+        }
 
-            return platformsArr;
+        public int[][] Platforms
+        {
+            get 
+            {
+                int[][] platformsArr = new int[rectangles.Count][];
+                for (int i = 0; i < rectangles.Count; i++)
+                {
+                    int counter = 0;
+                    platformsArr[i] = new int[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
+                    for (int j = rectangles[i].X; j < rectangles[i].X + rectangles[i].Width + 1; j++)
+                        for (int k = rectangles[i].Y; k < rectangles[i].Y + rectangles[i].Height + 1; k++)
+                        {
+                            platformsArr[i][counter] = Int32.Parse(tableLayoutPanel1.GetControlFromPosition(j, k).Text);
+                            counter++;
+                        }
+                }
+
+                return platformsArr;
+            }
+        }
+
+        private void buttonInputPickets_Click(object sender, EventArgs e)
+        {
+            ShowMyDialogBox();
+        }
+
+        public void ShowMyDialogBox()
+        {
+            InputPickectsModalForm Dialog = new InputPickectsModalForm();
+
+            // Show testDialog as a modal dialog and determine if DialogResult = OK.
+            if (Dialog.ShowDialog(this) == DialogResult.OK)
+            {
+                // Read the contents of testDialog's TextBox.
+                int picket = Int32.Parse(Dialog.textBox1.Text);
+                int?[] pickets = new int?[tableLayoutPanel1.Controls.Count];
+                for (int i = 0; i < pickets.Length; picket++, i++)
+                    pickets[i] = picket;
+
+                this.InputPickets = pickets;
+            }
+
+            Dialog.Dispose();
         }
 
     }

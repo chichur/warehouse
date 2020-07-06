@@ -8,8 +8,8 @@ namespace warehouse
 {
     public interface IView
     {
-        int[] InputPickets { get; }
-        int[][] GetPlatforms();
+        int?[] InputPickets { set; }
+        int[][] Platforms { get; }
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
 
@@ -24,6 +24,7 @@ namespace warehouse
             _view = view;
             _view.SetCargo += new EventHandler<EventArgs>(OnSetCargo);
             _view.SetPlatforms += new EventHandler<EventArgs>(OnSetPlatforms);
+            UpdateView();
         }
 
         private void OnSetCargo(Object sender, EventArgs e)
@@ -33,8 +34,7 @@ namespace warehouse
 
         private void OnSetPlatforms(Object sender, EventArgs e)
         {
-            int [][]
-            platformView = _view.GetPlatforms();
+            int [][] platformView = _view.Platforms;
             using (warehousedbContext db = new warehousedbContext())
             {
                 for (int i = 0; i < platformView.Length; i++)
@@ -46,8 +46,7 @@ namespace warehouse
                         {
                             NameStock = "Склад 1",
                             IdPlatformNavigation = platform,
-                            Picket = 132
-
+                            Picket = platformView[i][j],
                         };
 
                         db.Stocks.Add(stock);
@@ -56,7 +55,17 @@ namespace warehouse
 
                 db.SaveChanges();
             }
-            _view.GetPlatforms();
+        }
+
+        private void UpdateView()
+        {
+            using (warehousedbContext db = new warehousedbContext())
+            {
+                var pickets = db.Stocks.GroupBy(s => s.Picket).OrderBy(s => s.Key).Select(s => s.Key).ToArray();
+                _view.InputPickets = pickets;
+            }
+           // _view.InputPickets = 
+           // _view.Platforms =
         }
 
     }
