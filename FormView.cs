@@ -15,16 +15,21 @@ namespace warehouse
     enum RefrehType
     {
         OnSelect,
-        Full
+        Full,
+        DiffRectangle,
     }
     public partial class FormView : Form, IView
     {
         public event EventHandler<EventArgs> SetCargo;
         public event EventHandler<EventArgs> SetPlatforms;
+        public event EventHandler<EventArgs> DeletePlatforms;
+        public event EventHandler<EventArgs> ClearStock;
         bool rectangleFlag = false;
+        bool reformingPlatforms = false;
         int counterPlatform = 0;
         Point firstPicketButton, secondPicketButton;
         List<Rectangle> rectangles = new List<Rectangle>();
+        int?[][] platforms;
         public FormView()
         {
             InitializeComponent();
@@ -53,6 +58,7 @@ namespace warehouse
                     buttonPicket.Dock = DockStyle.Fill;
                     buttonPicket.Click += new EventHandler(ButtonPicketClick);
                     buttonPicket.MouseEnter += new EventHandler(OnMouseEnterButtonPicket);
+                    buttonPicket.FlatAppearance.BorderColor = Color.Red;
 
                     // Add the new ToolStripButton control to the GridStrip.
 
@@ -82,11 +88,15 @@ namespace warehouse
             tableLayoutPanel1.Enabled = false;
         }
 
-        private void RefrehsGrid(RefrehType type)
+        private void RefrehsGrid(RefrehType type, Rectangle rec=new Rectangle())
         {
             for (int i = 0; i < tableLayoutPanel1.ColumnCount; i++)
                 for (int j = 0; j < tableLayoutPanel1.RowCount; j++)
                 {
+                    if (type == RefrehType.DiffRectangle)
+                    {
+                        //Тут решрешим площадку
+                    }
                     if (type == RefrehType.OnSelect)
                         if (tableLayoutPanel1.GetControlFromPosition(i, j).Tag == null)
                             tableLayoutPanel1.GetControlFromPosition(i, j).BackColor = Color.White;
@@ -134,6 +144,7 @@ namespace warehouse
                             StartSelectPlatforms();
                         else
                         {
+                            platforms = ConvertRecToPlatforms();
                             SetPlatforms(this, EventArgs.Empty);
                             tableLayoutPanel1.Enabled = false;
                         }
@@ -170,14 +181,22 @@ namespace warehouse
             Rectangle currentRect = new Rectangle(firstPicketButton.X, firstPicketButton.Y,
                                 point.X - firstPicketButton.X, point.Y - firstPicketButton.Y);
 
-            if (rectangleFlag)
+            if (reformingPlatforms)
             {
-                foreach (Rectangle rec in rectangles)
-                    if (intersect = IntersectsRectangles(currentRect, rec))
-                        break;
+                // Здесь код для реформирования платформ
+                // при наведении выделяются пикеты платформ
+            }
+            else
+            {
+                if (rectangleFlag)
+                {
+                    foreach (Rectangle rec in rectangles)
+                        if (intersect = IntersectsRectangles(currentRect, rec))
+                            break;
 
-                if (!intersect)
-                    FillRectangle(firstPicketButton, point, Color.Green);
+                    if (!intersect)
+                        FillRectangle(firstPicketButton, point, Color.LimeGreen);
+                }
             }
         }
 
@@ -191,6 +210,7 @@ namespace warehouse
         {
             ShowMyDialogBox();
             StartSelectPlatforms();
+            ClearStock(this, EventArgs.Empty);
         }
 
         private Color GetRandomColor(int seed)
@@ -236,25 +256,30 @@ namespace warehouse
             }
         }
 
+        private int?[][] ConvertRecToPlatforms()
+        {
+            int?[][] platformsArr = new int?[rectangles.Count][];
+            for (int i = 0; i < rectangles.Count; i++)
+            {
+                int counter = 0;
+                platformsArr[i] = new int?[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
+                for (int j = rectangles[i].X; j < rectangles[i].X + rectangles[i].Width + 1; j++)
+                    for (int k = rectangles[i].Y; k < rectangles[i].Y + rectangles[i].Height + 1; k++)
+                    {
+                        if (Int32.TryParse(tableLayoutPanel1.GetControlFromPosition(j, k).Text, out int x))
+                            platformsArr[i][counter] = x;
+                        counter++;
+                    }
+            }
+
+            return platformsArr;
+        }
+
         public int?[][] Platforms
         {
             get 
             {
-                int?[][] platformsArr = new int?[rectangles.Count][];
-                for (int i = 0; i < rectangles.Count; i++)
-                {
-                    int counter = 0;
-                    platformsArr[i] = new int?[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
-                    for (int j = rectangles[i].X; j < rectangles[i].X + rectangles[i].Width + 1; j++)
-                        for (int k = rectangles[i].Y; k < rectangles[i].Y + rectangles[i].Height + 1; k++)
-                        {
-                            if (Int32.TryParse(tableLayoutPanel1.GetControlFromPosition(j, k).Text, out int x))
-                                platformsArr[i][counter] = x;
-                            counter++;
-                        }
-                }
-
-                return platformsArr;
+                return platforms;
             }
             set
             {
@@ -274,6 +299,21 @@ namespace warehouse
         private void buttonInputPickets_Click(object sender, EventArgs e)
         {
             ShowMyDialogBox();
+        }
+
+        private void buttonClearStock_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < tableLayoutPanel1.RowCount; i++)
+                for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
+                {
+                    Button btn = tableLayoutPanel1.GetControlFromPosition(j, i) as Button;
+                    btn.Text = "";
+                    btn.Name = null;
+                    btn.BackColor = Color.WhiteSmoke;
+                }
+
+            tableLayoutPanel1.Enabled = false;
+            
         }
 
         public void ShowMyDialogBox()

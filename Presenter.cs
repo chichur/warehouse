@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -14,7 +16,8 @@ namespace warehouse
         int?[][] Platforms { get; set; }
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
-
+        event EventHandler<EventArgs> DeletePlatforms;
+        event EventHandler<EventArgs> ClearStock;
     }
 
     public class Presenter
@@ -26,12 +29,14 @@ namespace warehouse
             _view = view;
             _view.SetCargo += new EventHandler<EventArgs>(OnSetCargo);
             _view.SetPlatforms += new EventHandler<EventArgs>(OnSetPlatforms);
+            _view.DeletePlatforms += new EventHandler<EventArgs>(OnDeletePlatforms);
+            _view.ClearStock += new EventHandler<EventArgs>(OnClearStock);
             UpdateView();
         }
 
         private void OnSetCargo(Object sender, EventArgs e)
         {
-            
+            //Здесь задаем грузы для площадок
         }
 
         private void OnSetPlatforms(Object sender, EventArgs e)
@@ -63,6 +68,29 @@ namespace warehouse
                     ShowError(ex.Message);
                 }  
             }
+
+            UpdateView();
+        }
+
+        private void OnClearStock(object sender, EventArgs e)
+        {
+            using (warehousedbContext db = new warehousedbContext())
+            {
+                try
+                {
+                    db.Database.ExecuteSqlCommand("TRUNCATE stocks CASCADE;");
+                }
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                }
+
+            }
+        }
+
+        private void OnDeletePlatforms(object sender, EventArgs e)
+        {
+
         }
 
         private void UpdateView()
@@ -101,7 +129,10 @@ namespace warehouse
                 {
                     ShowError("Данные отсутствуют");
                 }
-
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                }
 
             }
 

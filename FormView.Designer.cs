@@ -30,7 +30,7 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonSelectPlatform = new System.Windows.Forms.Button();
-            this.buttonInputPickets = new System.Windows.Forms.Button();
+            this.buttonClearStock = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -65,15 +65,15 @@
             this.buttonSelectPlatform.UseVisualStyleBackColor = true;
             this.buttonSelectPlatform.Click += new System.EventHandler(this.ButtonSelectPlatform_Click);
             // 
-            // buttonInputPickets
+            // buttonClearStock
             // 
-            this.buttonInputPickets.Location = new System.Drawing.Point(623, 258);
-            this.buttonInputPickets.Name = "buttonInputPickets";
-            this.buttonInputPickets.Size = new System.Drawing.Size(75, 23);
-            this.buttonInputPickets.TabIndex = 2;
-            this.buttonInputPickets.Text = "button1";
-            this.buttonInputPickets.UseVisualStyleBackColor = true;
-            this.buttonInputPickets.Click += new System.EventHandler(this.buttonInputPickets_Click);
+            this.buttonClearStock.Location = new System.Drawing.Point(623, 325);
+            this.buttonClearStock.Name = "buttonClearStock";
+            this.buttonClearStock.Size = new System.Drawing.Size(75, 23);
+            this.buttonClearStock.TabIndex = 3;
+            this.buttonClearStock.Text = "Очистка склада";
+            this.buttonClearStock.UseVisualStyleBackColor = true;
+            this.buttonClearStock.Click += new System.EventHandler(this.buttonClearStock_Click);
             // 
             // FormView
             // 
@@ -81,7 +81,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(761, 506);
-            this.Controls.Add(this.buttonInputPickets);
+            this.Controls.Add(this.buttonClearStock);
             this.Controls.Add(this.buttonSelectPlatform);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "FormView";
@@ -94,7 +94,7 @@
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button buttonSelectPlatform;
-        private System.Windows.Forms.Button buttonInputPickets;
+        private System.Windows.Forms.Button buttonClearStock;
     }
 }
 
