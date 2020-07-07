@@ -31,11 +31,6 @@ namespace warehouse
             InitializeTableLayoutSettings();
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            
-        }
-
         private void InitializeTableLayoutSettings()
         {
             tableLayoutPanel1.RowCount = 5;
@@ -194,6 +189,7 @@ namespace warehouse
 
         private void ButtonSelectPlatform_Click(object sender, EventArgs e)
         {
+            ShowMyDialogBox();
             StartSelectPlatforms();
         }
 
@@ -233,30 +229,45 @@ namespace warehouse
                     for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
                     {
                         tableLayoutPanel1.GetControlFromPosition(j, i).Text = value[k].ToString();
+                        tableLayoutPanel1.GetControlFromPosition(j, i).Name = value[k].ToString();
                         k++;
                     }
                         
             }
         }
 
-        public int[][] Platforms
+        public int?[][] Platforms
         {
             get 
             {
-                int[][] platformsArr = new int[rectangles.Count][];
+                int?[][] platformsArr = new int?[rectangles.Count][];
                 for (int i = 0; i < rectangles.Count; i++)
                 {
                     int counter = 0;
-                    platformsArr[i] = new int[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
+                    platformsArr[i] = new int?[(rectangles[i].Width + 1) * (rectangles[i].Height + 1)];
                     for (int j = rectangles[i].X; j < rectangles[i].X + rectangles[i].Width + 1; j++)
                         for (int k = rectangles[i].Y; k < rectangles[i].Y + rectangles[i].Height + 1; k++)
                         {
-                            platformsArr[i][counter] = Int32.Parse(tableLayoutPanel1.GetControlFromPosition(j, k).Text);
+                            if (Int32.TryParse(tableLayoutPanel1.GetControlFromPosition(j, k).Text, out int x))
+                                platformsArr[i][counter] = x;
                             counter++;
                         }
                 }
 
                 return platformsArr;
+            }
+            set
+            {
+                for (int i = 0; i < value.Length; i++)
+                    for (int j = 0; j < value[i].Length; j++)
+                    {
+                        Control[] controls = tableLayoutPanel1.Controls.Find(value[i][j].ToString(), false);
+                        if (controls != null && controls.Length > 0)
+                        {
+                            Button btn = controls[0] as Button;
+                            btn.BackColor = GetRandomColor(i);
+                        }      
+                    }
             }
         }
 

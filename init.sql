@@ -1,3 +1,10 @@
+-- create user test with password 'test';
+-- alter role test set client_encoding to 'utf8';
+-- alter role test set default_transaction_isolation to 'read committed';
+-- alter role test set timezone to 'UTC';
+
+-- create database warehousedb owner test;
+
 CREATE TABLE platforms(
   id_platform SERIAL,
   cargo INT,
