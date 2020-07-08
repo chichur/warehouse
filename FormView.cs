@@ -12,12 +12,6 @@ using warehouse.Modals;
 
 namespace warehouse
 {
-    enum RefrehType
-    {
-        OnSelect,
-        Full,
-        DiffRectangle,
-    }
     public partial class FormView : Form, IView
     {
         public event EventHandler<EventArgs> SetCargo;
@@ -25,11 +19,12 @@ namespace warehouse
         public event EventHandler<EventArgs> DeletePlatforms;
         public event EventHandler<EventArgs> ClearStock;
         bool rectangleFlag = false;
-        bool reformingPlatforms = false;
+        ReformingStates States = ReformingStates.Nothing;
         int counterPlatform = 0;
         Point firstPicketButton, secondPicketButton;
         List<Rectangle> rectangles = new List<Rectangle>();
         int?[][] platforms;
+        List<int?[]> platformsToDelete = new List<int?[]>();
         public FormView()
         {
             InitializeComponent();
@@ -58,7 +53,7 @@ namespace warehouse
                     buttonPicket.Dock = DockStyle.Fill;
                     buttonPicket.Click += new EventHandler(ButtonPicketClick);
                     buttonPicket.MouseEnter += new EventHandler(OnMouseEnterButtonPicket);
-                    buttonPicket.FlatAppearance.BorderColor = Color.Red;
+                    buttonPicket.MouseLeave += new EventHandler(OnMouseLeaveButtonPicket);
 
                     // Add the new ToolStripButton control to the GridStrip.
 
@@ -88,25 +83,40 @@ namespace warehouse
             tableLayoutPanel1.Enabled = false;
         }
 
-        private void RefrehsGrid(RefrehType type, Rectangle rec=new Rectangle())
+        private void RefrehsGrid(RefrehType type)
         {
             for (int i = 0; i < tableLayoutPanel1.ColumnCount; i++)
+            {
                 for (int j = 0; j < tableLayoutPanel1.RowCount; j++)
                 {
-                    if (type == RefrehType.DiffRectangle)
-                    {
-                        //Тут решрешим площадку
-                    }
+                    Button button = tableLayoutPanel1.GetControlFromPosition(i, j) as Button;
+
                     if (type == RefrehType.OnSelect)
-                        if (tableLayoutPanel1.GetControlFromPosition(i, j).Tag == null)
-                            tableLayoutPanel1.GetControlFromPosition(i, j).BackColor = Color.White;
+                        if (button.Tag == null)
+                            button.BackColor = Color.White;
                     if (type == RefrehType.Full)
                     {
-                        Button button = tableLayoutPanel1.GetControlFromPosition(i, j) as Button;
                         button.BackColor = Color.White;
                         button.Tag = null;
                     }
+                    if (type == RefrehType.Partially)
+                    {
+                        foreach (int?[] platform in platformsToDelete)
+                            for (int k = 0; k < platform.Length; k++)
+                                if (Int32.Parse(button.Text) == platform[k])
+                                {
+                                    button.BackColor = Color.White;
+                                    button.Tag = null;
+                                    goto exit;
+                                }
+
+                        button.Enabled = false;
+                    }
+                    exit: continue;
                 }
+                
+            }
+            
         }
 
         private void ButtonPicketClick(object sender, EventArgs e)
@@ -118,45 +128,61 @@ namespace warehouse
             Rectangle currentRect = new Rectangle(firstPicketButton.X, firstPicketButton.Y,
                                                           point.X - firstPicketButton.X, point.Y - firstPicketButton.Y);
 
-            if (rectangleFlag)
+            if (States == ReformingStates.Select)
             {
-                secondPicketButton = point;
-                rectangleFlag = false;
-                foreach (Rectangle rec in rectangles)
-                    if (intersect = IntersectsRectangles(currentRect, rec))
-                        break;
-
-                if (!intersect)
-                {
-                    FillRectangle(firstPicketButton, point, GetRandomColor(counterPlatform++));
-                    rectangles.Add(currentRect);
-                    if (GridIsFilled())
-                    {
-                        DialogResult result = MessageBox.Show(
-                                                    "Платформы выделены. Начать заново?",
-                                                    "Сообщение",
-                                                    MessageBoxButtons.YesNo,
-                                                    MessageBoxIcon.Information,
-                                                    MessageBoxDefaultButton.Button1,
-                                                    MessageBoxOptions.DefaultDesktopOnly);
-
-                        if (result == DialogResult.Yes)
-                            StartSelectPlatforms();
-                        else
+                for (int i = 0; i < platforms.Length; i++)
+                    for (int j = 0; j < platforms[i].Length; j++)
+                        if (Int32.Parse(button.Text) == platforms[i][j])
                         {
-                            platforms = ConvertRecToPlatforms();
-                            SetPlatforms(this, EventArgs.Empty);
-                            tableLayoutPanel1.Enabled = false;
+                            platformsToDelete.Add(platforms[i]);
+                            goto exit;
                         }
-                            
-                    }
-                }                  
+                exit:;
             }
             else
             {
-                firstPicketButton = point;
-                rectangleFlag = true;
+                if (rectangleFlag)
+                {
+                    secondPicketButton = point;
+                    rectangleFlag = false;
+                    foreach (Rectangle rec in rectangles)
+                        if (intersect = IntersectsRectangles(currentRect, rec))
+                            break;
+
+                    if (!intersect)
+                    {
+                        FillRectangle(firstPicketButton, point, GetRandomColor(counterPlatform++));
+                        rectangles.Add(currentRect);
+                        if (GridIsFilled())
+                        {
+                            DialogResult result = MessageBox.Show(
+                                                        "Платформы выделены. Начать заново?",
+                                                        "Сообщение",
+                                                        MessageBoxButtons.YesNo,
+                                                        MessageBoxIcon.Information,
+                                                        MessageBoxDefaultButton.Button1,
+                                                        MessageBoxOptions.DefaultDesktopOnly);
+
+                            if (result == DialogResult.Yes)
+                                StartSelectPlatforms();
+                            else
+                            {
+                                platforms = ConvertRecToPlatforms();
+                                SetPlatforms(this, EventArgs.Empty);
+                                tableLayoutPanel1.Enabled = false;
+                                buttonReformingPlatform.Enabled = true;
+                            }
+                            
+                        }
+                    }
+                }
+                else
+                {
+                    firstPicketButton = point;
+                    rectangleFlag = true;
+                }
             }
+            
         }
 
         private void FillRectangle(Point a, Point b, Color color)
@@ -176,18 +202,37 @@ namespace warehouse
             bool intersect = false;
             Button button = (Button)sender;
             Point point = new Point(tableLayoutPanel1.GetColumn(button), tableLayoutPanel1.GetRow(button));
-            RefrehsGrid(RefrehType.OnSelect);
+            
 
             Rectangle currentRect = new Rectangle(firstPicketButton.X, firstPicketButton.Y,
                                 point.X - firstPicketButton.X, point.Y - firstPicketButton.Y);
 
-            if (reformingPlatforms)
+            if (States == ReformingStates.Select)
             {
-                // Здесь код для реформирования платформ
-                // при наведении выделяются пикеты платформ
+                for (int i = 0; i < platforms.Count(); i++)
+                    for (int j = 0; j < platforms[i].Count(); j++)
+                        if(button.Text == platforms[i][j].ToString())
+                        {
+                            for (int k = 0; k < platforms[i].Count(); k++)
+                            {
+                                Control[] controls = tableLayoutPanel1.Controls.Find(platforms[i][k].ToString(), false);
+                                if (controls != null && controls.Length > 0)
+                                {
+                                    Button btnFind = controls[0] as Button;
+                                    btnFind.FlatAppearance.BorderSize = 3;
+                                }
+                            }
+                            goto exit;
+                        }
+                exit:;
             }
             else
             {
+                if (States == ReformingStates.Select)
+                    RefrehsGrid(RefrehType.Partially);
+                else
+                    RefrehsGrid(RefrehType.OnSelect);
+
                 if (rectangleFlag)
                 {
                     foreach (Rectangle rec in rectangles)
@@ -200,6 +245,30 @@ namespace warehouse
             }
         }
 
+        private void OnMouseLeaveButtonPicket(object sender, EventArgs e)
+        {
+            if (States == ReformingStates.Select)
+            {
+                Button btn = sender as Button;
+
+                for (int i = 0; i < platforms.Count(); i++)
+                    for (int j = 0; j < platforms[i].Count(); j++)
+                        if (btn.Text == platforms[i][j].ToString())
+                        {
+                            for (int k = 0; k < platforms[i].Count(); k++)
+                            {
+                                Control[] controls = tableLayoutPanel1.Controls.Find(platforms[i][k].ToString(), false);
+                                if (controls != null && controls.Length > 0)
+                                {
+                                    Button btnFind = controls[0] as Button;
+                                    btnFind.FlatAppearance.BorderSize = 1;
+                                }
+                            }
+
+                        }
+            }
+        }
+
         private bool IntersectsRectangles(Rectangle a, Rectangle b)
         {
             return (a.Y <= b.Y + b.Height && a.Y + a.Height >= b.Y &&
@@ -208,6 +277,8 @@ namespace warehouse
 
         private void ButtonSelectPlatform_Click(object sender, EventArgs e)
         {
+            States = ReformingStates.Nothing;
+            buttonReformingPlatform.Enabled = false;
             ShowMyDialogBox();
             StartSelectPlatforms();
             ClearStock(this, EventArgs.Empty);
@@ -251,8 +322,7 @@ namespace warehouse
                         tableLayoutPanel1.GetControlFromPosition(j, i).Text = value[k].ToString();
                         tableLayoutPanel1.GetControlFromPosition(j, i).Name = value[k].ToString();
                         k++;
-                    }
-                        
+                    }    
             }
         }
 
@@ -291,8 +361,11 @@ namespace warehouse
                         {
                             Button btn = controls[0] as Button;
                             btn.BackColor = GetRandomColor(i);
+                            btn.Tag = 1;
                         }      
                     }
+
+                platforms = value;
             }
         }
 
@@ -314,6 +387,24 @@ namespace warehouse
 
             tableLayoutPanel1.Enabled = false;
             
+        }
+
+        private void buttonReformingPlatform_Click(object sender, EventArgs e)
+        {
+            if(States == ReformingStates.Select)
+            {
+                RefrehsGrid(RefrehType.Partially);
+                rectangles.Clear();
+                States = ReformingStates.Nothing;
+                buttonReformingPlatform.Text = "Расформировать платформы";
+                buttonReformingPlatform.Enabled = false;
+            }
+            else if(States == ReformingStates.Nothing)
+            {
+                States = ReformingStates.Select;
+                buttonReformingPlatform.Text = "Выбрать платформы";
+                tableLayoutPanel1.Enabled = true;
+            }
         }
 
         public void ShowMyDialogBox()

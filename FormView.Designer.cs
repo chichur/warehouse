@@ -31,6 +31,7 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonSelectPlatform = new System.Windows.Forms.Button();
             this.buttonClearStock = new System.Windows.Forms.Button();
+            this.buttonReformingPlatform = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -75,12 +76,23 @@
             this.buttonClearStock.UseVisualStyleBackColor = true;
             this.buttonClearStock.Click += new System.EventHandler(this.buttonClearStock_Click);
             // 
+            // buttonReformingPlatform
+            // 
+            this.buttonReformingPlatform.Location = new System.Drawing.Point(623, 258);
+            this.buttonReformingPlatform.Name = "buttonReformingPlatform";
+            this.buttonReformingPlatform.Size = new System.Drawing.Size(75, 23);
+            this.buttonReformingPlatform.TabIndex = 4;
+            this.buttonReformingPlatform.Text = "buttonReformingPlatform";
+            this.buttonReformingPlatform.UseVisualStyleBackColor = true;
+            this.buttonReformingPlatform.Click += new System.EventHandler(this.buttonReformingPlatform_Click);
+            // 
             // FormView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(761, 506);
+            this.Controls.Add(this.buttonReformingPlatform);
             this.Controls.Add(this.buttonClearStock);
             this.Controls.Add(this.buttonSelectPlatform);
             this.Controls.Add(this.tableLayoutPanel1);
@@ -95,6 +107,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button buttonSelectPlatform;
         private System.Windows.Forms.Button buttonClearStock;
+        private System.Windows.Forms.Button buttonReformingPlatform;
     }
 }
 

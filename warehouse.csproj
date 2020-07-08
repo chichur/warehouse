@@ -142,6 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CargoHistory.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="FormView.cs">
       <SubType>Form</SubType>
     </Compile>
