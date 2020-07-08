@@ -98,6 +98,7 @@ namespace warehouse
                     {
                         button.BackColor = Color.White;
                         button.Tag = null;
+                        button.Enabled = true;
                     }
                     if (type == RefrehType.Partially)
                     {
@@ -395,6 +396,7 @@ namespace warehouse
             {
                 RefrehsGrid(RefrehType.Partially);
                 rectangles.Clear();
+                platformsToDelete.Clear();
                 States = ReformingStates.Nothing;
                 buttonReformingPlatform.Text = "Расформировать платформы";
                 buttonReformingPlatform.Enabled = false;
