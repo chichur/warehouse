@@ -21,10 +21,11 @@ namespace warehouse
         bool rectangleFlag = false;
         ReformingStates States = ReformingStates.Nothing;
         int counterPlatform = 0;
+        int?[][] platforms;
         Point firstPicketButton, secondPicketButton;
         List<Rectangle> rectangles = new List<Rectangle>();
-        int?[][] platforms;
         List<int?[]> platformsToDelete = new List<int?[]>();
+        Dictionary<int, int?> cargo = new Dictionary<int, int?>();
         public FormView()
         {
             InitializeComponent();
@@ -33,6 +34,7 @@ namespace warehouse
 
         private void InitializeTableLayoutSettings()
         {
+
             tableLayoutPanel1.RowCount = 5;
             tableLayoutPanel1.ColumnCount = 4;
 
@@ -54,6 +56,7 @@ namespace warehouse
                     buttonPicket.Click += new EventHandler(ButtonPicketClick);
                     buttonPicket.MouseEnter += new EventHandler(OnMouseEnterButtonPicket);
                     buttonPicket.MouseLeave += new EventHandler(OnMouseLeaveButtonPicket);
+                    buttonPicket.FlatAppearance.BorderSize = 2;
 
                     // Add the new ToolStripButton control to the GridStrip.
 
@@ -91,9 +94,16 @@ namespace warehouse
                 {
                     Button button = tableLayoutPanel1.GetControlFromPosition(i, j) as Button;
 
+                    if (type == RefrehType.OnlyEnable)
+                    {
+                        button.Enabled = true;
+                    }
+
                     if (type == RefrehType.OnSelect)
                         if (button.Tag == null)
                             button.BackColor = Color.White;
+                        if (button.FlatAppearance.BorderColor == Color.Red)
+                            button.FlatAppearance.BorderColor = Color.Black;
                     if (type == RefrehType.Full)
                     {
                         button.BackColor = Color.White;
@@ -131,6 +141,22 @@ namespace warehouse
 
             if (States == ReformingStates.Select)
             {
+                for (int i = 0; i < platforms.Count(); i++)
+                    for (int j = 0; j < platforms[i].Count(); j++)
+                        if (button.Text == platforms[i][j].ToString())
+                        {
+                            for (int k = 0; k < platforms[i].Count(); k++)
+                            {
+                                Control[] controls = tableLayoutPanel1.Controls.Find(platforms[i][k].ToString(), false);
+                                if (controls != null && controls.Length > 0)
+                                {
+                                    Button btnFind = controls[0] as Button;
+                                    btnFind.FlatAppearance.BorderColor = Color.Red;
+                                }
+                            }
+
+                        }
+
                 for (int i = 0; i < platforms.Length; i++)
                     for (int j = 0; j < platforms[i].Length; j++)
                         if (Int32.Parse(button.Text) == platforms[i][j])
@@ -140,6 +166,10 @@ namespace warehouse
                         }
                 exit:;
             }
+            else if(States == ReformingStates.SettingCargo)
+            {
+                ShowModal(Int32.Parse(button.Text));
+            }    
             else
             {
                 if (rectangleFlag)
@@ -156,6 +186,10 @@ namespace warehouse
                         rectangles.Add(currentRect);
                         if (GridIsFilled())
                         {
+                            RefrehsGrid(RefrehType.OnSelect);
+                            RefrehsGrid(RefrehType.OnlyEnable);
+                            
+
                             DialogResult result = MessageBox.Show(
                                                         "Платформы выделены. Начать заново?",
                                                         "Сообщение",
@@ -262,7 +296,7 @@ namespace warehouse
                                 if (controls != null && controls.Length > 0)
                                 {
                                     Button btnFind = controls[0] as Button;
-                                    btnFind.FlatAppearance.BorderSize = 1;
+                                    btnFind.FlatAppearance.BorderSize = 2;
                                 }
                             }
 
@@ -280,7 +314,7 @@ namespace warehouse
         {
             States = ReformingStates.Nothing;
             buttonReformingPlatform.Enabled = false;
-            ShowMyDialogBox();
+            ShowModal();
             StartSelectPlatforms();
             ClearStock(this, EventArgs.Empty);
         }
@@ -312,21 +346,6 @@ namespace warehouse
             RefrehsGrid(RefrehType.Full);
         }
 
-        public int?[] InputPickets
-        {
-            set
-            {
-                int k = 0;
-                for (int i = 0; i < tableLayoutPanel1.RowCount; i++)
-                    for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
-                    {
-                        tableLayoutPanel1.GetControlFromPosition(j, i).Text = value[k].ToString();
-                        tableLayoutPanel1.GetControlFromPosition(j, i).Name = value[k].ToString();
-                        k++;
-                    }    
-            }
-        }
-
         private int?[][] ConvertRecToPlatforms()
         {
             int?[][] platformsArr = new int?[rectangles.Count][];
@@ -345,6 +364,23 @@ namespace warehouse
 
             return platformsArr;
         }
+
+        public int?[] InputPickets
+        {
+            set
+            {
+                int k = 0;
+                for (int i = 0; i < tableLayoutPanel1.RowCount; i++)
+                    for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
+                    {
+                        tableLayoutPanel1.GetControlFromPosition(j, i).Text = value[k].ToString();
+                        tableLayoutPanel1.GetControlFromPosition(j, i).Name = value[k].ToString();
+                        k++;
+                    }    
+            }
+        }
+
+        
 
         public int?[][] Platforms
         {
@@ -370,24 +406,61 @@ namespace warehouse
             }
         }
 
-        private void buttonInputPickets_Click(object sender, EventArgs e)
+        public Dictionary<int, int?> Cargo
         {
-            ShowMyDialogBox();
-        }
-
-        private void buttonClearStock_Click(object sender, EventArgs e)
-        {
-            for (int i = 0; i < tableLayoutPanel1.RowCount; i++)
-                for (int j = 0; j < tableLayoutPanel1.ColumnCount; j++)
+            get
+            {
+                return cargo;
+            }
+            set
+            {
+                
+                dataGridView1.Rows.Clear();
+                dataGridView1.Refresh();
+                
+                // заполнить таблицу грузов
+                foreach (int platform_id in value.Keys)
                 {
-                    Button btn = tableLayoutPanel1.GetControlFromPosition(j, i) as Button;
-                    btn.Text = "";
-                    btn.Name = null;
-                    btn.BackColor = Color.WhiteSmoke;
+                    string[] row = { platform_id.ToString(), value[platform_id].ToString() };
+                    DataGridViewRow dataGridViewRow = new DataGridViewRow();
+                    DataGridViewCellStyle style = new DataGridViewCellStyle();
+                    style.BackColor = Color.Green; // the color change
+                    dataGridViewRow.DefaultCellStyle = style;
+                    dataGridView1.Rows.Add(row);
+                    
+                    //dataGridView1.Rows.Add(;
                 }
 
-            tableLayoutPanel1.Enabled = false;
-            
+                DataGridViewSelectionMode oldmode = dataGridView1.SelectionMode;
+                dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+                dataGridView1.ClearSelection();
+                dataGridView1.SelectionMode = oldmode;
+
+            }
+        }
+
+        private void buttonInputPickets_Click(object sender, EventArgs e)
+        {
+            ShowModal();
+        }
+
+        private void buttonSetCargo_Click(object sender, EventArgs e)
+        {
+            if (States == ReformingStates.SettingCargo)
+            {
+
+                States = ReformingStates.Nothing;
+                SetCargo(this, EventArgs.Empty);
+                buttonSetCargo.Text = "Расформировать платформы";
+                tableLayoutPanel1.Enabled = false;
+            }
+            else if (States == ReformingStates.Nothing)
+            {
+                States = ReformingStates.SettingCargo;
+                buttonSetCargo.Text = "Выбрать платформы";
+                tableLayoutPanel1.Enabled = true;
+            }
+
         }
 
         private void buttonReformingPlatform_Click(object sender, EventArgs e)
@@ -395,6 +468,8 @@ namespace warehouse
             if(States == ReformingStates.Select)
             {
                 RefrehsGrid(RefrehType.Partially);
+                platforms = platformsToDelete.ToArray();
+                DeletePlatforms(this, EventArgs.Empty);
                 rectangles.Clear();
                 platformsToDelete.Clear();
                 States = ReformingStates.Nothing;
@@ -409,23 +484,46 @@ namespace warehouse
             }
         }
 
-        public void ShowMyDialogBox()
+        private void FormView_Shown(object sender, EventArgs e)
         {
-            InputPickectsModalForm Dialog = new InputPickectsModalForm();
+            dataGridView1.ClearSelection();
+        }
 
-            // Show testDialog as a modal dialog and determine if DialogResult = OK.
-            if (Dialog.ShowDialog(this) == DialogResult.OK)
+        public void ShowModal(int picketNumber=0)
+        {
+            if (States == ReformingStates.Nothing)
             {
-                // Read the contents of testDialog's TextBox.
-                int picket = Int32.Parse(Dialog.textBox1.Text);
-                int?[] pickets = new int?[tableLayoutPanel1.Controls.Count];
-                for (int i = 0; i < pickets.Length; picket++, i++)
-                    pickets[i] = picket;
+                InputPickectsModalForm Dialog = new InputPickectsModalForm();
 
-                this.InputPickets = pickets;
+                // 
+                if (Dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    // 
+                    int picket = Int32.Parse(Dialog.textBox1.Text);
+                    int?[] pickets = new int?[tableLayoutPanel1.Controls.Count];
+                    for (int i = 0; i < pickets.Length; picket++, i++)
+                        pickets[i] = picket;
+
+                    this.InputPickets = pickets;
+                }
+
+                Dialog.Dispose();
             }
+            else if (States == ReformingStates.SettingCargo)
+            {
+                InputCargoModalForm Dialog = new InputCargoModalForm();
 
-            Dialog.Dispose();
+                // 
+                if (Dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    //
+                    cargo.Add(picketNumber ,Int32.Parse(Dialog.textBox1.Text));
+                    
+                }
+
+                Dialog.Dispose();
+            }
+            
         }
 
     }

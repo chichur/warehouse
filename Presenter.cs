@@ -14,6 +14,7 @@ namespace warehouse
     {
         int?[] InputPickets { set; }
         int?[][] Platforms { get; set; }
+        Dictionary<int, int?> Cargo { get; set; }
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
         event EventHandler<EventArgs> DeletePlatforms;
@@ -36,7 +37,29 @@ namespace warehouse
 
         private void OnSetCargo(Object sender, EventArgs e)
         {
-            //Здесь задаем грузы для площадок
+            Dictionary<int, int?> pairs_picket_cargo = _view.Cargo;
+            using (warehousedbContext db = new warehousedbContext())
+            {
+                foreach (int key in pairs_picket_cargo.Keys)
+                {
+                    var platform = db.Platforms.Where(p => p.IdPlatform == db.Stocks.Where(s => s.NameStock == "Склад 1")
+                            .Where(s => s.Picket == key)
+                            .Select(s => s.IdPlatform)
+                            .First()).First();
+
+                    platform.Cargo = pairs_picket_cargo[key];
+                }
+                try
+                {
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                }
+            }
+
+            UpdateView();
         }
 
         private void OnSetPlatforms(Object sender, EventArgs e)
@@ -46,7 +69,7 @@ namespace warehouse
             {
                 for (int i = 0; i < platformView.Length; i++)
                 {
-                    Platforms platform = new Platforms { Cargo = 6 };
+                    Platforms platform = new Platforms { Cargo = 0 };
                     for (int j = 0; j < platformView[i].Length; j++)
                     {
                         Stocks stock = new Stocks
@@ -78,7 +101,7 @@ namespace warehouse
             {
                 try
                 {
-                    db.Database.ExecuteSqlCommand("TRUNCATE stocks CASCADE;");
+                    db.Database.ExecuteSqlCommand("TRUNCATE platforms CASCADE;");
                 }
                 catch (Exception ex)
                 {
@@ -90,7 +113,27 @@ namespace warehouse
 
         private void OnDeletePlatforms(object sender, EventArgs e)
         {
+            int?[][] platformView = _view.Platforms;
+            using (warehousedbContext db = new warehousedbContext())
+            {
+                for (int i = 0; i < platformView.Length; i++)
+                {
+                    var platform = db.Platforms.Where(p => p.IdPlatform == db.Stocks.Where(s => s.NameStock == "Склад 1")
+                            .Where(s => s.Picket == platformView[i][0])
+                            .Select(s => s.IdPlatform)
+                            .First()).First();
 
+                    db.Platforms.Remove(platform);
+                }
+                try
+                {
+                    db.SaveChanges();
+                }
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                }
+            }
         }
 
         private void UpdateView()
@@ -122,8 +165,21 @@ namespace warehouse
                         platformView[i] = platformPickets;
                     }
 
+                    Dictionary<int, int> pairs_platformid_cargo = new Dictionary<int, int>();
+
+                    var platformForTable = db.Platforms.Select(p => new { p.IdPlatform, p.Cargo })
+                        .ToDictionary(kvp => kvp.IdPlatform, kvp => kvp.Cargo);
+
+
+
+
+
+
+
+
                     _view.InputPickets = pickets;
                     _view.Platforms = platformView;
+                    _view.Cargo = platformForTable;
                 }
                 catch(IndexOutOfRangeException)
                 {

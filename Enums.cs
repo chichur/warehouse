@@ -5,11 +5,13 @@
         OnSelect,
         Full,
         Partially,
+        OnlyEnable,
     }
 
     enum ReformingStates
     {
         Nothing,
         Select,
+        SettingCargo,
     }
 }
