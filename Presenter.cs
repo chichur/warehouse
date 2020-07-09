@@ -164,12 +164,12 @@ namespace warehouse
                             
                         platformView[i] = platformPickets;
                     }
+                    // создание словаря пара груз платформы и список пикетов
+                    Dictionary<int, int?[]> pairs_platformid_cargo = new Dictionary<int, int?[]>();
 
-                    Dictionary<int, int> pairs_platformid_cargo = new Dictionary<int, int>();
-
-                    var platformForTable = db.Platforms.Select(p => new { p.IdPlatform, p.Cargo })
-                        .ToDictionary(kvp => kvp.IdPlatform, kvp => kvp.Cargo);
-
+                    var platformForTable = db.Platforms.Select(p => p.IdPlatform);
+                    foreach ()
+                        //закончил здесь
 
 
 
