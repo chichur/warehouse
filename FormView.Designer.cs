@@ -33,8 +33,8 @@
             this.buttonSetCargo = new System.Windows.Forms.Button();
             this.buttonReformingPlatform = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.platformId = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.cargoCol = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.cargo_value = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.pickets = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -49,7 +49,7 @@
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 721F));
-            this.tableLayoutPanel1.Location = new System.Drawing.Point(130, 142);
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(136, 40);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.RowCount = 5;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -57,36 +57,36 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(416, 301);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(419, 301);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // buttonSelectPlatform
             // 
-            this.buttonSelectPlatform.Location = new System.Drawing.Point(12, 142);
+            this.buttonSelectPlatform.Location = new System.Drawing.Point(12, 40);
             this.buttonSelectPlatform.Name = "buttonSelectPlatform";
-            this.buttonSelectPlatform.Size = new System.Drawing.Size(75, 23);
+            this.buttonSelectPlatform.Size = new System.Drawing.Size(112, 53);
             this.buttonSelectPlatform.TabIndex = 1;
-            this.buttonSelectPlatform.Text = "button1";
+            this.buttonSelectPlatform.Text = "Расформировать склад";
             this.buttonSelectPlatform.UseVisualStyleBackColor = true;
             this.buttonSelectPlatform.Click += new System.EventHandler(this.ButtonSelectPlatform_Click);
             // 
             // buttonSetCargo
             // 
-            this.buttonSetCargo.Location = new System.Drawing.Point(12, 365);
+            this.buttonSetCargo.Location = new System.Drawing.Point(12, 263);
             this.buttonSetCargo.Name = "buttonSetCargo";
-            this.buttonSetCargo.Size = new System.Drawing.Size(75, 23);
+            this.buttonSetCargo.Size = new System.Drawing.Size(112, 62);
             this.buttonSetCargo.TabIndex = 3;
-            this.buttonSetCargo.Text = "Очистка склада";
+            this.buttonSetCargo.Text = "Задать груз";
             this.buttonSetCargo.UseVisualStyleBackColor = true;
             this.buttonSetCargo.Click += new System.EventHandler(this.buttonSetCargo_Click);
             // 
             // buttonReformingPlatform
             // 
-            this.buttonReformingPlatform.Location = new System.Drawing.Point(12, 271);
+            this.buttonReformingPlatform.Location = new System.Drawing.Point(12, 145);
             this.buttonReformingPlatform.Name = "buttonReformingPlatform";
-            this.buttonReformingPlatform.Size = new System.Drawing.Size(75, 23);
+            this.buttonReformingPlatform.Size = new System.Drawing.Size(112, 55);
             this.buttonReformingPlatform.TabIndex = 4;
-            this.buttonReformingPlatform.Text = "buttonReformingPlatform";
+            this.buttonReformingPlatform.Text = "Расформировать площадки";
             this.buttonReformingPlatform.UseVisualStyleBackColor = true;
             this.buttonReformingPlatform.Click += new System.EventHandler(this.buttonReformingPlatform_Click);
             // 
@@ -94,29 +94,29 @@
             // 
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.platformId,
-            this.cargoCol});
-            this.dataGridView1.Location = new System.Drawing.Point(605, 142);
+            this.cargo_value,
+            this.pickets});
+            this.dataGridView1.Location = new System.Drawing.Point(574, 40);
             this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.Size = new System.Drawing.Size(290, 144);
+            this.dataGridView1.Size = new System.Drawing.Size(290, 301);
             this.dataGridView1.TabIndex = 5;
             // 
-            // platformId
+            // cargo_value
             // 
-            this.platformId.HeaderText = "ID";
-            this.platformId.Name = "platformId";
+            this.cargo_value.HeaderText = "Груз, т";
+            this.cargo_value.Name = "cargo_value";
             // 
-            // cargoCol
+            // pickets
             // 
-            this.cargoCol.HeaderText = "Груз";
-            this.cargoCol.Name = "cargoCol";
+            this.pickets.HeaderText = "Пикеты";
+            this.pickets.Name = "pickets";
             // 
             // FormView
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(1140, 616);
+            this.ClientSize = new System.Drawing.Size(886, 371);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonReformingPlatform);
             this.Controls.Add(this.buttonSetCargo);
@@ -137,8 +137,8 @@
         private System.Windows.Forms.Button buttonSetCargo;
         private System.Windows.Forms.Button buttonReformingPlatform;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn platformId;
-        private System.Windows.Forms.DataGridViewTextBoxColumn cargoCol;
+        private System.Windows.Forms.DataGridViewTextBoxColumn cargo_value;
+        private System.Windows.Forms.DataGridViewTextBoxColumn pickets;
     }
 }
 

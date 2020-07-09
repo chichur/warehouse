@@ -14,7 +14,7 @@ namespace warehouse
     {
         int?[] InputPickets { set; }
         int?[][] Platforms { get; set; }
-        Dictionary<int, int?> Cargo { get; set; }
+        Dictionary<int?[], int?> Cargo { get; set; }
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
         event EventHandler<EventArgs> DeletePlatforms;
@@ -37,13 +37,13 @@ namespace warehouse
 
         private void OnSetCargo(Object sender, EventArgs e)
         {
-            Dictionary<int, int?> pairs_picket_cargo = _view.Cargo;
+            Dictionary<int?[], int?> pairs_picket_cargo = _view.Cargo;
             using (warehousedbContext db = new warehousedbContext())
             {
-                foreach (int key in pairs_picket_cargo.Keys)
+                foreach (int?[] key in pairs_picket_cargo.Keys)
                 {
                     var platform = db.Platforms.Where(p => p.IdPlatform == db.Stocks.Where(s => s.NameStock == "Склад 1")
-                            .Where(s => s.Picket == key)
+                            .Where(s => s.Picket == key[0])
                             .Select(s => s.IdPlatform)
                             .First()).First();
 
@@ -165,10 +165,19 @@ namespace warehouse
                         platformView[i] = platformPickets;
                     }
                     // создание словаря пара груз платформы и список пикетов
-                    Dictionary<int, int?[]> pairs_platformid_cargo = new Dictionary<int, int?[]>();
+                    Dictionary<int?[], int?> pairs_platformid_cargo = new Dictionary<int?[], int?>();
 
-                    var platformForTable = db.Platforms.Select(p => p.IdPlatform);
-                    foreach ()
+                    var platformForTable = db.Platforms.Select(p => new { p.IdPlatform, p.Cargo }).ToList() ;
+                    foreach (var cargo in platformForTable)
+                    {
+                        var list_pickets = db.Stocks.Where(s => s.NameStock == "Склад 1")
+                            .Where(s => s.IdPlatform == cargo.IdPlatform)
+                            .Select(s => s.Picket)
+                            .ToArray();
+
+                        pairs_platformid_cargo.Add(list_pickets, cargo.Cargo);
+                    }
+                        
                         //закончил здесь
 
 
@@ -179,7 +188,7 @@ namespace warehouse
 
                     _view.InputPickets = pickets;
                     _view.Platforms = platformView;
-                    _view.Cargo = platformForTable;
+                    _view.Cargo = pairs_platformid_cargo;
                 }
                 catch(IndexOutOfRangeException)
                 {
@@ -189,7 +198,6 @@ namespace warehouse
                 {
                     ShowError(ex.Message);
                 }
-
             }
 
             

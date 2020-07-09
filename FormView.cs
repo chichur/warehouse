@@ -25,7 +25,7 @@ namespace warehouse
         Point firstPicketButton, secondPicketButton;
         List<Rectangle> rectangles = new List<Rectangle>();
         List<int?[]> platformsToDelete = new List<int?[]>();
-        Dictionary<int, int?> cargo = new Dictionary<int, int?>();
+        Dictionary<int?[], int?> cargo = new Dictionary<int?[], int?>();
         public FormView()
         {
             InitializeComponent();
@@ -206,8 +206,9 @@ namespace warehouse
                                 SetPlatforms(this, EventArgs.Empty);
                                 tableLayoutPanel1.Enabled = false;
                                 buttonReformingPlatform.Enabled = true;
+                                buttonSetCargo.Enabled = true;
+                                buttonSelectPlatform.Enabled = true;
                             }
-                            
                         }
                     }
                 }
@@ -314,6 +315,7 @@ namespace warehouse
         {
             States = ReformingStates.Nothing;
             buttonReformingPlatform.Enabled = false;
+            buttonSetCargo.Enabled = false;
             ShowModal();
             StartSelectPlatforms();
             ClearStock(this, EventArgs.Empty);
@@ -406,7 +408,7 @@ namespace warehouse
             }
         }
 
-        public Dictionary<int, int?> Cargo
+        public Dictionary<int?[], int?> Cargo
         {
             get
             {
@@ -419,14 +421,25 @@ namespace warehouse
                 dataGridView1.Refresh();
                 
                 // заполнить таблицу грузов
-                foreach (int platform_id in value.Keys)
+                foreach (int?[] pickets in value.Keys)
                 {
-                    string[] row = { platform_id.ToString(), value[platform_id].ToString() };
-                    DataGridViewRow dataGridViewRow = new DataGridViewRow();
+                    string[] row = { string.Join(",", pickets), value[pickets].ToString() };
+
+                    DataGridViewRow dataGridViewRow = (DataGridViewRow)dataGridView1.Rows[0].Clone();
                     DataGridViewCellStyle style = new DataGridViewCellStyle();
-                    style.BackColor = Color.Green; // the color change
+
+
+                    for (int i = 0; i < tableLayoutPanel1.ColumnCount; i++)
+                        for (int j = 0; j < tableLayoutPanel1.RowCount; j++)
+                            if (Int32.Parse(tableLayoutPanel1.GetControlFromPosition(i, j).Text) == pickets[0])
+                                style.BackColor = tableLayoutPanel1.GetControlFromPosition(i, j).BackColor;
+
+                    //style.BackColor = Color.Green; // the color change
                     dataGridViewRow.DefaultCellStyle = style;
-                    dataGridView1.Rows.Add(row);
+                    dataGridViewRow.Cells[0].Value = value[pickets].ToString();
+                    dataGridViewRow.Cells[1].Value = string.Join(",", pickets);
+                    dataGridView1.Rows.Add(dataGridViewRow);
+
                     
                     //dataGridView1.Rows.Add(;
                 }
@@ -448,16 +461,18 @@ namespace warehouse
         {
             if (States == ReformingStates.SettingCargo)
             {
-
                 States = ReformingStates.Nothing;
-                SetCargo(this, EventArgs.Empty);
-                buttonSetCargo.Text = "Расформировать платформы";
+                buttonSetCargo.Text = "Задать груз";
+                buttonReformingPlatform.Enabled = true;
+                buttonSelectPlatform.Enabled = true;
                 tableLayoutPanel1.Enabled = false;
             }
             else if (States == ReformingStates.Nothing)
             {
                 States = ReformingStates.SettingCargo;
-                buttonSetCargo.Text = "Выбрать платформы";
+                buttonSetCargo.Text = "Выберите площадки";
+                buttonReformingPlatform.Enabled = false;
+                buttonSelectPlatform.Enabled = false;
                 tableLayoutPanel1.Enabled = true;
             }
 
@@ -475,6 +490,8 @@ namespace warehouse
                 States = ReformingStates.Nothing;
                 buttonReformingPlatform.Text = "Расформировать платформы";
                 buttonReformingPlatform.Enabled = false;
+                buttonSetCargo.Enabled = false;
+                buttonSelectPlatform.Enabled = false;
             }
             else if(States == ReformingStates.Nothing)
             {
@@ -516,9 +533,10 @@ namespace warehouse
                 // 
                 if (Dialog.ShowDialog(this) == DialogResult.OK)
                 {
-                    //
-                    cargo.Add(picketNumber ,Int32.Parse(Dialog.textBox1.Text));
-                    
+                    int?[] pickets = new int?[1];
+                    pickets[0] = picketNumber;
+                    cargo.Add(pickets, Int32.Parse(Dialog.textBox1.Text));
+                    SetCargo(this, EventArgs.Empty);
                 }
 
                 Dialog.Dispose();
