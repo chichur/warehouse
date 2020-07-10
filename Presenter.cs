@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using warehouse.Models;
 
 namespace warehouse
 {
@@ -128,10 +129,7 @@ namespace warehouse
             {
                 try
                 {
-                    var q1 = db.Stocks.Where()
-                    _view.InputPickets = pickets;
-                    _view.Platforms = platformView;
-                    _view.Cargo = pairs_platformid_cargo;
+                    //код получения истории
                 }
                 catch (IndexOutOfRangeException)
                 {

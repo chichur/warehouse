@@ -141,7 +141,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CargoHistory.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="FormView.cs">
       <SubType>Form</SubType>
@@ -161,13 +160,14 @@
     <Compile Include="Modals\InputPickectsModalForm.Designer.cs">
       <DependentUpon>InputPickectsModalForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Platforms.cs" />
-    <Compile Include="PlatformsHistory.cs" />
+    <Compile Include="Models\CargoHistory.cs" />
+    <Compile Include="Models\Platforms.cs" />
+    <Compile Include="Models\PlatformsHistory.cs" />
+    <Compile Include="Models\Stocks.cs" />
+    <Compile Include="Models\warehousedbContext.cs" />
     <Compile Include="Presenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Stocks.cs" />
-    <Compile Include="warehousedbContext.cs" />
     <EmbeddedResource Include="FormView.resx">
       <DependentUpon>FormView.cs</DependentUpon>
     </EmbeddedResource>
