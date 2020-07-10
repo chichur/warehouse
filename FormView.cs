@@ -506,6 +506,11 @@ namespace warehouse
             dataGridView1.ClearSelection();
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            GetHistory(this, EventArgs.Empty);
+        }
+
         public void ShowModal(int picketNumber=0)
         {
             if (States == ReformingStates.Nothing)

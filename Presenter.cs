@@ -129,7 +129,45 @@ namespace warehouse
             {
                 try
                 {
+                    const char insert = 'I', delete = 'D', update = 'U';
                     //код получения истории
+                    var q1 = db.PlatformsHistory.Where(h => h.Operation == insert)
+                        .Select(h => new { h.IdStock, h.NameStock, h.IdPlatform, h.Picket });
+
+                    var q2 = db.PlatformsHistory.Where(h => h.Operation == delete)
+                        .Select(h => new { h.IdStock, h.NameStock, h.IdPlatform, h.Picket });
+
+                    var history = q1.Except(q2);
+
+                    var platforms = history.GroupBy(s => s.IdPlatform)
+                        .Select(s => s.Key)
+                        .ToArray()
+                        .Reverse()
+                        .ToArray(); 
+
+                    var pickets = history.GroupBy(s => s.Picket)
+                        .OrderBy(s => s.Key)
+                        .Select(s => s.Key)
+                        .ToArray();
+
+                    int?[][] platformView = new int?[platforms.Count()][];
+                    for (int i = 0; i < platforms.Count(); i++)
+                    {
+                        var platformPickets = db.Stocks.Where(s => s.NameStock == "Склад 1")
+                            .Where(s => s.IdPlatform == platforms[i])
+                            .Select(s => s.Picket)
+                            .ToArray();
+
+                        platformView[i] = platformPickets;
+                    }
+                    int?[] newPickets = new int?[pickets.Length];
+                    
+                    for (int i = 0; i < pickets.Length; i++)
+                        newPickets[i] = pickets[i];
+
+                    _view.InputPickets = newPickets;
+                    _view.Platforms = platformView;
+                    //_view.Cargo = pairs_platformid_cargo;
                 }
                 catch (IndexOutOfRangeException)
                 {
