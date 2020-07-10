@@ -18,34 +18,55 @@ CREATE TABLE stocks(
 	picket INT,
 	PRIMARY KEY (id_stock),
 	FOREIGN KEY (id_platform) REFERENCES platforms(id_platform)
+		ON DELETE CASCADE;
 );
 
 CREATE TABLE platforms_history(
-    stamp timestamp NOT NULL,
-    id_stock INT NOT NULL,
+	operation char(1) NOT NULL,
+    	stamp timestamp NOT NULL,
+    	id_stock INT NOT NULL,
 	name_stock VARCHAR(20) NOT NULL,
 	id_platform INT NOT NULL,
 	picket INT NOT NULL
 );
 
 CREATE TABLE cargo_history(
+	operation char(1) NOT NULL,
 	stamp timestamp NOT NULL,
-    id_platform INT NOT NULL,
+    	id_platform INT NOT NULL,
 	cargo INT NOT NULL
 );
 
 CREATE OR REPLACE FUNCTION process_platforms() RETURNS TRIGGER AS $process_platforms$
     BEGIN
-		EXECUTE format('INSERT INTO %I SELECT now(), * FROM %I', TG_NAME, TG_TABLE_NAME);
+		IF (TG_OP = 'INSERT') THEN
+			INSERT INTO platforms_history SELECT 'I', now(), NEW.*;
+			RETURN NEW;
+		ELSIF (TG_OP = 'DELETE') THEN
+			INSERT INTO platforms_history SELECT 'D', now(), OLD.*;
+			RETURN NEW;
+		END IF;
 		RETURN NULL;
-    END;
+	END;
 $process_platforms$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION process_cargo() RETURNS TRIGGER AS $process_cargo$
+    BEGIN
+		IF (TG_OP = 'INSERT') THEN
+			INSERT INTO cargo_history SELECT 'I', now(), NEW.*;
+			RETURN NEW;
+		ELSIF (TG_OP = 'UPDATE') THEN
+			INSERT INTO cargo_history SELECT 'U', now(), NEW.*;
+			RETURN NEW;
+		END IF;
+		RETURN NULL;
+	END;
+$process_cargo$ LANGUAGE plpgsql;
 
 CREATE TRIGGER platforms_history
 AFTER INSERT OR UPDATE OR DELETE ON stocks
-    FOR EACH STATEMENT EXECUTE PROCEDURE process_platforms();
+    FOR EACH ROW EXECUTE FUNCTION process_platforms();
 	
-CREATE TRIGGER cargo_history
+CREATE TRIGGER process_cargo
 AFTER INSERT OR UPDATE OR DELETE ON platforms
-    FOR EACH STATEMENT EXECUTE PROCEDURE process_platforms();
-	
+    FOR EACH ROW EXECUTE FUNCTION process_cargo();
