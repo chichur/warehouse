@@ -18,7 +18,7 @@ namespace warehouse
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
         event EventHandler<EventArgs> DeletePlatforms;
-        event EventHandler<EventArgs> ClearStock;
+        event EventHandler<EventArgs> GetHistory;
     }
 
     public class Presenter
@@ -31,7 +31,7 @@ namespace warehouse
             _view.SetCargo += new EventHandler<EventArgs>(OnSetCargo);
             _view.SetPlatforms += new EventHandler<EventArgs>(OnSetPlatforms);
             _view.DeletePlatforms += new EventHandler<EventArgs>(OnDeletePlatforms);
-            _view.ClearStock += new EventHandler<EventArgs>(OnClearStock);
+            _view.GetHistory += new EventHandler<EventArgs>(OnGetHistory);
             UpdateView();
         }
 
@@ -95,39 +95,47 @@ namespace warehouse
             UpdateView();
         }
 
-        private void OnClearStock(object sender, EventArgs e)
-        {
-            using (warehousedbContext db = new warehousedbContext())
-            {
-                try
-                {
-                    db.Database.ExecuteSqlCommand("TRUNCATE platforms CASCADE;");
-                }
-                catch (Exception ex)
-                {
-                    ShowError(ex.Message);
-                }
-
-            }
-        }
-
         private void OnDeletePlatforms(object sender, EventArgs e)
         {
             int?[][] platformView = _view.Platforms;
             using (warehousedbContext db = new warehousedbContext())
             {
-                for (int i = 0; i < platformView.Length; i++)
-                {
-                    var platform = db.Platforms.Where(p => p.IdPlatform == db.Stocks.Where(s => s.NameStock == "Склад 1")
-                            .Where(s => s.Picket == platformView[i][0])
-                            .Select(s => s.IdPlatform)
-                            .First()).First();
+                if (platformView != null)
+                    for (int i = 0; i < platformView.Length; i++)
+                    {
+                        var platform = db.Platforms.Where(p => p.IdPlatform == db.Stocks.Where(s => s.NameStock == "Склад 1")
+                                .Where(s => s.Picket == platformView[i][0])
+                                .Select(s => s.IdPlatform)
+                                .First()).First();
 
-                    db.Platforms.Remove(platform);
-                }
+                        if (platform != null)
+                            db.Platforms.Remove(platform);
+                    }
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowError(ex.Message);
+                    }
+            }
+        }
+
+        private void OnGetHistory(object sender, EventArgs e)
+        {
+            using (warehousedbContext db = new warehousedbContext())
+            {
                 try
                 {
-                    db.SaveChanges();
+                    var q1 = db.Stocks.Where()
+                    _view.InputPickets = pickets;
+                    _view.Platforms = platformView;
+                    _view.Cargo = pairs_platformid_cargo;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    ShowError("Данные отсутствуют");
                 }
                 catch (Exception ex)
                 {
@@ -135,7 +143,6 @@ namespace warehouse
                 }
             }
         }
-
         private void UpdateView()
         {
             using (warehousedbContext db = new warehousedbContext())

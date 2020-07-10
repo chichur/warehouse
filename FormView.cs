@@ -17,7 +17,7 @@ namespace warehouse
         public event EventHandler<EventArgs> SetCargo;
         public event EventHandler<EventArgs> SetPlatforms;
         public event EventHandler<EventArgs> DeletePlatforms;
-        public event EventHandler<EventArgs> ClearStock;
+        public event EventHandler<EventArgs> GetHistory;
         bool rectangleFlag = false;
         ReformingStates States = ReformingStates.Nothing;
         int counterPlatform = 0;
@@ -318,7 +318,6 @@ namespace warehouse
             buttonSetCargo.Enabled = false;
             ShowModal();
             StartSelectPlatforms();
-            ClearStock(this, EventArgs.Empty);
         }
 
         private Color GetRandomColor(int seed)
@@ -344,6 +343,7 @@ namespace warehouse
             rectangleFlag = false;
             counterPlatform = 0;
             tableLayoutPanel1.Enabled = true;
+            DeletePlatforms(this, EventArgs.Empty);
             rectangles.Clear();
             RefrehsGrid(RefrehType.Full);
         }

@@ -110,6 +110,7 @@
             // 
             this.pickets.HeaderText = "Пикеты";
             this.pickets.Name = "pickets";
+            this.pickets.Width = 300;
             // 
             // FormView
             // 
