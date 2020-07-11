@@ -35,7 +35,8 @@
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.cargo_value = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pickets = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.button1 = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.labelUntrackedCargo = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -67,7 +68,7 @@
             this.buttonSelectPlatform.Name = "buttonSelectPlatform";
             this.buttonSelectPlatform.Size = new System.Drawing.Size(112, 53);
             this.buttonSelectPlatform.TabIndex = 1;
-            this.buttonSelectPlatform.Text = "Расформировать склад";
+            this.buttonSelectPlatform.Text = "Cформировать склад";
             this.buttonSelectPlatform.UseVisualStyleBackColor = true;
             this.buttonSelectPlatform.Click += new System.EventHandler(this.ButtonSelectPlatform_Click);
             // 
@@ -113,15 +114,24 @@
             this.pickets.Name = "pickets";
             this.pickets.Width = 300;
             // 
-            // button1
+            // label1
             // 
-            this.button1.Location = new System.Drawing.Point(367, 13);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 6;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label1.Location = new System.Drawing.Point(169, 344);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(226, 20);
+            this.label1.TabIndex = 6;
+            this.label1.Text = "Нераспределенный груз: ";
+            // 
+            // labelUntrackedCargo
+            // 
+            this.labelUntrackedCargo.AutoSize = true;
+            this.labelUntrackedCargo.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.labelUntrackedCargo.Location = new System.Drawing.Point(391, 344);
+            this.labelUntrackedCargo.Name = "labelUntrackedCargo";
+            this.labelUntrackedCargo.Size = new System.Drawing.Size(0, 20);
+            this.labelUntrackedCargo.TabIndex = 7;
             // 
             // FormView
             // 
@@ -129,7 +139,8 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(886, 371);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.labelUntrackedCargo);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonReformingPlatform);
             this.Controls.Add(this.buttonSetCargo);
@@ -140,6 +151,7 @@
             this.Shown += new System.EventHandler(this.FormView_Shown);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -152,7 +164,8 @@
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.DataGridViewTextBoxColumn cargo_value;
         private System.Windows.Forms.DataGridViewTextBoxColumn pickets;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelUntrackedCargo;
     }
 }
 
