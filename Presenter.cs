@@ -12,7 +12,7 @@ using warehouse.Models;
 namespace warehouse
 {
     // интерфейс для обмена представления и представителя, который мы должны обязательно
-    // в форме 
+    // реализовать в форме 
     public interface IView
     {
         int?[] InputPickets { set; }
