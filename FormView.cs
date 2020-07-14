@@ -30,7 +30,7 @@ namespace warehouse
         // перечисление режимов 
         ReformingStates States = ReformingStates.Nothing;
         int counterPlatform = 0;
-        int untrackedCargo = 322;
+        int untrackedCargo = 0;
         // переменная для хранения платформ на представлении
         int?[][] platforms;
         // точки рисования прямоугольника
@@ -39,6 +39,8 @@ namespace warehouse
         List<Rectangle> rectangles = new List<Rectangle>();
         // список платформ к удалению
         List<int?[]> platformsToDelete = new List<int?[]>();
+        // список платформ которым требуется указать груз
+        List<int?[]> platformsToSetCargo = new List<int?[]>();
         // словарь для вывода значений грузов
         Dictionary<int?[], int?> cargo = new Dictionary<int?[], int?>();
         public FormView()
@@ -199,14 +201,38 @@ namespace warehouse
             }
             else if(States == ReformingStates.SettingCargo)
             {
-                if (platforms.Length == 1 || untrackedCargo == 0)
+                int picketNumber = Int32.Parse(button.Text);
+                // находим платформу по кнопке
+                foreach (int?[] platform in platformsToSetCargo.ToList())
+                    for (int i = 0; i < platform.Length; i++)
+                        if (Int32.Parse(button.Text) == platform[i])
+                        {
+                            // отключаем все кнопки платформы
+                            for (int j = 0; j < platform.Length; j++)
+                            {
+                                Control[] controls = tableLayoutPanel1.Controls.Find(platform[j].ToString(), false);
+                                if (controls != null && controls.Length > 0)
+                                {
+                                    Button btnFind = controls[0] as Button;
+                                    btnFind.Enabled = false;
+                                }
+                            }
+
+                            platformsToSetCargo.Remove(platform);
+                            // оператор goto используется для выхода из вложенных циклов оператор break неуместен
+                            goto exit;
+                        }
+                    exit:;
+
+                ShowModal(picketNumber);
+
+
+                if (platformsToSetCargo.Count == 1 || untrackedCargo == 0)
                 {
-                    int?[] pickets = new int?[1];
-                    pickets[0] = Int32.Parse(button.Text);
-                    cargo.Add(pickets, untrackedCargo);
+                    int?[] pickets = platformsToSetCargo.First();
+                    WithdrawCargo(untrackedCargo, pickets[0]);
                     untrackedCargo = 0;
-                    labelUntrackedCargo.Text = untrackedCargo.ToString();
-                    SetCargo(this, EventArgs.Empty);
+                    platformsToSetCargo.Clear();
                     States = ReformingStates.Nothing;
                     buttonReformingPlatform.Enabled = true;
                     buttonSelectPlatform.Enabled = true;
@@ -214,8 +240,7 @@ namespace warehouse
                     buttonSetCargo.Enabled = true;
                     tableLayoutPanel1.Enabled = false;
                 }
-                else
-                    ShowModal(Int32.Parse(button.Text));
+                
 
             }    
             else
@@ -258,6 +283,9 @@ namespace warehouse
                             {
                                 // преобразуем прямоугольники в площадки
                                 platforms = ConvertRecToPlatforms();
+                                // добавляем все платформы в список для задания груза
+                                foreach (int?[] platform in platforms)
+                                    platformsToSetCargo.Add(platform);
                                 // вызываем событие установки платформ,
                                 SetPlatforms(this, EventArgs.Empty);
                                 // переключаем на режим размещения грузов
@@ -531,6 +559,7 @@ namespace warehouse
                 dataGridView1.SelectionMode = oldmode;
 
                 labelUntrackedCargo.Text = untrackedCargo.ToString();
+                cargo = value;
             }
         }
         #endregion
@@ -569,6 +598,7 @@ namespace warehouse
             }
             else if(States == ReformingStates.Nothing)
             {
+                RefrehsGrid(RefrehType.OnlyEnable);
                 States = ReformingStates.Select;
                 buttonReformingPlatform.Text = "Выбрать платформы";
                 tableLayoutPanel1.Enabled = true;
@@ -583,6 +613,26 @@ namespace warehouse
             dataGridView1.ClearSelection();
         }
 
+        // функция для расчет количества груза которое требуется распределить между площадками
+        private void WithdrawCargo(int cargoValue, int? picketNumber)
+        {
+            int?[] pickets = new int?[1];
+            pickets[0] = picketNumber;
+
+            if (cargoValue > untrackedCargo)
+            {
+                cargo.Add(pickets, untrackedCargo);
+                untrackedCargo = 0;
+            }
+            else
+            {
+                cargo.Add(pickets, cargoValue);
+                untrackedCargo -= cargoValue;
+            }
+            labelUntrackedCargo.Text = untrackedCargo.ToString();
+            SetCargo(this, EventArgs.Empty);
+        }
+
         // функция вызова модальных окон
         public void ShowModal(int picketNumber=0)
         {
@@ -594,16 +644,16 @@ namespace warehouse
                 // если нажата кнопка ок тогда считать значение 
                 if (Dialog.ShowDialog(this) == DialogResult.OK)
                 {
-                    // 
-                    int picket = Int32.Parse(Dialog.textBox1.Text);
+                    // если не был введен номер первого пикета то принимаем "1"
+                    int picket = Int32.TryParse(Dialog.textBox1.Text, out int res1) ? res1 : 1;
                     int?[] pickets = new int?[tableLayoutPanel1.Controls.Count];
                     for (int i = 0; i < pickets.Length; picket++, i++)
                         pickets[i] = picket;
 
                     this.InputPickets = pickets;
 
-                    int cargo = Int32.Parse(Dialog.textBox2.Text);
-                    untrackedCargo = cargo;
+                    // если не был введен нераспределенный груз то принимаем "0"
+                    untrackedCargo = Int32.TryParse(Dialog.textBox2.Text, out int res2) ? res2 : 0;
                 }
 
                 Dialog.Dispose();
@@ -615,20 +665,8 @@ namespace warehouse
 
                 if (Dialog.ShowDialog(this) == DialogResult.OK)
                 {
-                    int?[] pickets = new int?[1];
-                    pickets[0] = picketNumber;
-                    int cargoValue = Int32.Parse(Dialog.textBox1.Text);
-                    if((untrackedCargo -= cargoValue) < 0)
-                    {
-                        cargo.Add(pickets, cargoValue - untrackedCargo);
-                        labelUntrackedCargo.Text = "0";
-                    }
-                    else
-                    {
-                        cargo.Add(pickets, cargoValue);
-                        labelUntrackedCargo.Text = untrackedCargo.ToString();
-                    }
-                    SetCargo(this, EventArgs.Empty);
+                    int cargo = Int32.TryParse(Dialog.textBox1.Text, out int res) ? res : 0;
+                    WithdrawCargo(cargo, picketNumber);
                 }
 
                 Dialog.Dispose();

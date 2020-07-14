@@ -11,22 +11,23 @@ using warehouse.Models;
 
 namespace warehouse
 {
+    // Простейшая реализация паттерна MVP 
     // интерфейс для обмена представления и представителя, который мы должны обязательно
     // реализовать в форме 
     public interface IView
     {
-        int?[] InputPickets { set; }
-        int?[][] Platforms { get; set; }
+        int?[] InputPickets { set; } // свойство для ввода номеров пикетов
+        int?[][] Platforms { get; set; } // свойство для 
         Dictionary<int?[], int?> Cargo { get; set; }
         event EventHandler<EventArgs> SetCargo;
         event EventHandler<EventArgs> SetPlatforms;
         event EventHandler<EventArgs> DeletePlatforms;
-        event EventHandler<EventArgs> GetHistory;
     }
 
     // класс представителя, поле которого интерфейс 
     public class Presenter
     {
+        // поле класса является интерфейсом IView
         private IView _view;
         
         public Presenter(IView view)
@@ -38,7 +39,6 @@ namespace warehouse
             _view.SetCargo += new EventHandler<EventArgs>(OnSetCargo); 
             _view.SetPlatforms += new EventHandler<EventArgs>(OnSetPlatforms);
             _view.DeletePlatforms += new EventHandler<EventArgs>(OnDeletePlatforms);
-            _view.GetHistory += new EventHandler<EventArgs>(OnGetHistory);
 
             // обновление представления
             UpdateView(); 
@@ -144,82 +144,6 @@ namespace warehouse
                     {
                         ShowError(ex.Message);
                     }
-            }
-        }
-
-        // вывод истории (пока не используется)
-        private void OnGetHistory(object sender, EventArgs e)
-        {
-            //DateTimePicker datePicker = (DateTimePicker)sender;
-            //DateTime time = datePicker.Value;
-            using (warehousedbContext db = new warehousedbContext())
-            {
-                try
-                {
-                    // код получения истории
-                    // символы команд 
-                    const char insert = 'I', delete = 'D', update = 'U';
-                    
-
-                    var q1 = db.PlatformsHistory.Where(h => h.Operation == insert)
-                        .Select(h => new {h.Stamp, h.IdStock, h.NameStock, h.IdPlatform, h.Picket }); ;
-
-                    var q2 = db.PlatformsHistory.Where(h => h.Operation == delete)
-                        .Select(h => new { h.Stamp, h.IdStock, h.NameStock, h.IdPlatform, h.Picket });
-
-                    var platformHistory = q1.Except(q2);
-
-                    var platforms = platformHistory.GroupBy(s => s.IdPlatform)
-                        .Select(s => s.Key)
-                        .ToArray()
-                        .Reverse()
-                        .ToArray(); 
-
-                    var pickets = platformHistory.GroupBy(s => s.Picket)
-                        .OrderBy(s => s.Key)
-                        .Select(s => s.Key)
-                        .ToArray();
-
-                    int?[][] platformView = new int?[platforms.Count()][];
-                    for (int i = 0; i < platforms.Count(); i++)
-                    {
-                        var platformPickets = db.Stocks.Where(s => s.NameStock == "Склад 1")
-                            .Where(s => s.IdPlatform == platforms[i])
-                            .Select(s => s.Picket)
-                            .ToArray();
-
-                        platformView[i] = platformPickets;
-                    }
-                    int?[] newPickets = new int?[pickets.Length];
-                    
-                    for (int i = 0; i < pickets.Length; i++)
-                        newPickets[i] = pickets[i];
-
-                    // создание словаря пара груз платформы и список пикетов
-                    Dictionary<int?[], int?> pairs_platformid_cargo = new Dictionary<int?[], int?>();
-
-                    var platformForTable = db.Platforms.Select(p => new { p.IdPlatform, p.Cargo }).ToList();
-                    foreach (var cargo in platformForTable)
-                    {
-                        var list_pickets = db.Stocks.Where(s => s.NameStock == "Склад 1")
-                            .Where(s => s.IdPlatform == cargo.IdPlatform)
-                            .Select(s => s.Picket)
-                            .ToArray();
-
-                        pairs_platformid_cargo.Add(list_pickets, cargo.Cargo);
-                    }
-                    _view.InputPickets = newPickets;
-                    _view.Platforms = platformView;
-                    _view.Cargo = pairs_platformid_cargo;
-                }
-                catch (IndexOutOfRangeException)
-                {
-                    ShowError("Данные отсутствуют");
-                }
-                catch (Exception ex)
-                {
-                    ShowError(ex.Message);
-                }
             }
         }
 
