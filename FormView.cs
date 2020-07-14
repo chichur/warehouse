@@ -301,13 +301,13 @@ namespace warehouse
             bool intersect = false;
             Button button = (Button)sender;
             Point point = new Point(tableLayoutPanel1.GetColumn(button), tableLayoutPanel1.GetRow(button));
-            
+
 
             Rectangle currentRect = new Rectangle(firstPicketButton.X, firstPicketButton.Y,
                                 point.X - firstPicketButton.X, point.Y - firstPicketButton.Y);
 
             // если режим разбиения площадок то при выделении ширина бордера увеличивается
-            if (States == ReformingStates.Select)
+            if (States == ReformingStates.Select || States == ReformingStates.SettingCargo)
             {
                 for (int i = 0; i < platforms.Count(); i++)
                     for (int j = 0; j < platforms[i].Count(); j++)
@@ -350,7 +350,8 @@ namespace warehouse
         private void OnMouseLeaveButtonPicket(object sender, EventArgs e)
         {
             // если режим разбиения то возращаем прежнюю толщину границы кнопки
-            if (States == ReformingStates.Select)
+            if (States == ReformingStates.Select ||
+                States == ReformingStates.SettingCargo)
             {
                 Button btn = sender as Button;
 
