@@ -30,7 +30,7 @@
         {
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.buttonSelectPlatform = new System.Windows.Forms.Button();
-            this.buttonSetCargo = new System.Windows.Forms.Button();
+            this.buttonTransferCargo = new System.Windows.Forms.Button();
             this.buttonReformingPlatform = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.cargo_value = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -74,13 +74,13 @@
             // 
             // buttonSetCargo
             // 
-            this.buttonSetCargo.Location = new System.Drawing.Point(12, 263);
-            this.buttonSetCargo.Name = "buttonSetCargo";
-            this.buttonSetCargo.Size = new System.Drawing.Size(112, 62);
-            this.buttonSetCargo.TabIndex = 3;
-            this.buttonSetCargo.Text = "Задать груз";
-            this.buttonSetCargo.UseVisualStyleBackColor = true;
-            this.buttonSetCargo.Click += new System.EventHandler(this.buttonSetCargo_Click);
+            this.buttonTransferCargo.Location = new System.Drawing.Point(12, 263);
+            this.buttonTransferCargo.Name = "buttonSetCargo";
+            this.buttonTransferCargo.Size = new System.Drawing.Size(112, 62);
+            this.buttonTransferCargo.TabIndex = 3;
+            this.buttonTransferCargo.Text = "Задать груз";
+            this.buttonTransferCargo.UseVisualStyleBackColor = true;
+            this.buttonTransferCargo.Click += new System.EventHandler(this.buttonTransferCargo_Click);
             // 
             // buttonReformingPlatform
             // 
@@ -143,7 +143,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.buttonReformingPlatform);
-            this.Controls.Add(this.buttonSetCargo);
+            this.Controls.Add(this.buttonTransferCargo);
             this.Controls.Add(this.buttonSelectPlatform);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Name = "FormView";
@@ -159,7 +159,7 @@
 
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button buttonSelectPlatform;
-        private System.Windows.Forms.Button buttonSetCargo;
+        private System.Windows.Forms.Button buttonTransferCargo;
         private System.Windows.Forms.Button buttonReformingPlatform;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.DataGridViewTextBoxColumn cargo_value;

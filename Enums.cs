@@ -13,5 +13,6 @@
         Nothing,
         Select,
         SettingCargo,
+        TransferCargo,
     }
 }

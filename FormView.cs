@@ -31,6 +31,8 @@ namespace warehouse
         ReformingStates States = ReformingStates.Nothing;
         int counterPlatform = 0;
         int untrackedCargo = 0;
+        // переменная хранящая номер пикета площадки с которой перемещают груз
+        int? firstPlatformPicket = null;
         // переменная для хранения платформ на представлении
         int?[][] platforms;
         // точки рисования прямоугольника
@@ -162,6 +164,7 @@ namespace warehouse
         {
             bool intersect = false;
             Button button = (Button)sender;
+            int picketNumber = Int32.Parse(button.Text);
             Point point = new Point(tableLayoutPanel1.GetColumn(button), tableLayoutPanel1.GetRow(button));
 
             // текущий выделенный прямоугольник
@@ -198,10 +201,11 @@ namespace warehouse
                             goto exit;
                         }
                 exit:;
+
+                buttonReformingPlatform.Enabled = true;
             }
             else if(States == ReformingStates.SettingCargo)
             {
-                int picketNumber = Int32.Parse(button.Text);
                 // находим платформу по кнопке
                 foreach (int?[] platform in platformsToSetCargo.ToList())
                     for (int i = 0; i < platform.Length; i++)
@@ -229,20 +233,32 @@ namespace warehouse
 
                 if (platformsToSetCargo.Count == 1 || untrackedCargo == 0)
                 {
-                    int?[] pickets = platformsToSetCargo.First();
-                    WithdrawCargo(untrackedCargo, pickets[0]);
+                    if (platformsToSetCargo.Count != 0)
+                    {
+                        int?[] pickets = platformsToSetCargo.First();
+                        WithdrawCargo(untrackedCargo, pickets[0]);
+                    }
                     untrackedCargo = 0;
                     platformsToSetCargo.Clear();
                     States = ReformingStates.Nothing;
                     buttonReformingPlatform.Enabled = true;
                     buttonSelectPlatform.Enabled = true;
                     buttonReformingPlatform.Enabled = true;
-                    buttonSetCargo.Enabled = true;
+                    buttonTransferCargo.Enabled = true;
                     tableLayoutPanel1.Enabled = false;
                 }
-                
+            }
+            else if (States == ReformingStates.TransferCargo)
+            {
+                if (firstPlatformPicket != null)
+                {
+                    ShowModal(picketNumber);
+                    firstPlatformPicket = null;
+                }
+                else
+                    firstPlatformPicket = Int32.Parse(button.Text);
+            }
 
-            }    
             else
             {
                 // блок кода отвечает за рисование прямоугольника на сетке
@@ -290,12 +306,12 @@ namespace warehouse
                                 SetPlatforms(this, EventArgs.Empty);
                                 // переключаем на режим размещения грузов
                                 States = ReformingStates.SettingCargo;
-                                buttonSetCargo.Text = "Выберите площадки";
+                                buttonTransferCargo.Text = "Выберите площадки";
                                 // блокировка кнопок
                                 buttonReformingPlatform.Enabled = false;
                                 buttonSelectPlatform.Enabled = false;
                                 buttonReformingPlatform.Enabled = false;
-                                buttonSetCargo.Enabled = false;
+                                buttonTransferCargo.Enabled = false;
                             }
                         }
                     }
@@ -335,7 +351,9 @@ namespace warehouse
                                 point.X - firstPicketButton.X, point.Y - firstPicketButton.Y);
 
             // если режим разбиения площадок то при выделении ширина бордера увеличивается
-            if (States == ReformingStates.Select || States == ReformingStates.SettingCargo)
+            if (States == ReformingStates.Select ||
+                States == ReformingStates.SettingCargo ||
+                States == ReformingStates.TransferCargo)
             {
                 for (int i = 0; i < platforms.Count(); i++)
                     for (int j = 0; j < platforms[i].Count(); j++)
@@ -379,7 +397,8 @@ namespace warehouse
         {
             // если режим разбиения то возращаем прежнюю толщину границы кнопки
             if (States == ReformingStates.Select ||
-                States == ReformingStates.SettingCargo)
+                States == ReformingStates.SettingCargo ||
+                States == ReformingStates.TransferCargo)
             {
                 Button btn = sender as Button;
 
@@ -413,7 +432,7 @@ namespace warehouse
         {
             States = ReformingStates.Nothing;
             buttonReformingPlatform.Enabled = false;
-            buttonSetCargo.Enabled = false;
+            buttonTransferCargo.Enabled = false;
             ShowModal();
             StartSelectPlatforms();
         }
@@ -565,19 +584,26 @@ namespace warehouse
         #endregion
 
 
-        private void buttonSetCargo_Click(object sender, EventArgs e)
+        private void buttonTransferCargo_Click(object sender, EventArgs e)
         {
-            if (States == ReformingStates.SettingCargo)
+            if (States == ReformingStates.TransferCargo)
             {
                 States = ReformingStates.Nothing;
-                buttonSetCargo.Text = "Задать груз";
+                buttonTransferCargo.Text = "Переместить груз";
                 buttonReformingPlatform.Enabled = true;
                 buttonSelectPlatform.Enabled = true;
                 tableLayoutPanel1.Enabled = false;
             }
             else if (States == ReformingStates.Nothing)
             {
-
+                States = ReformingStates.TransferCargo;
+                RefrehsGrid(RefrehType.OnlyEnable);
+                cargo.Clear();
+                firstPlatformPicket = null;
+                buttonTransferCargo.Text = "Выберите площадки";
+                buttonReformingPlatform.Enabled = false;
+                buttonSelectPlatform.Enabled = false;
+                tableLayoutPanel1.Enabled = true;
             }
 
         }
@@ -589,12 +615,12 @@ namespace warehouse
             {
                 RefrehsGrid(RefrehType.Partially); // частичная очистка сетки
                 platforms = platformsToDelete.ToArray(); // удаление площадки
+                DeletePlatformsRowsGrid(platformsToDelete);
                 DeletePlatforms(this, EventArgs.Empty); // вызов события для представителя (Presenter)
                 rectangles.Clear();
                 platformsToDelete.Clear();
                 States = ReformingStates.Nothing; // вернуть в режим ожидания
                 buttonReformingPlatform.Text = "Расформировать платформы";
-                buttonReformingPlatform.Enabled = false;
             }
             else if(States == ReformingStates.Nothing)
             {
@@ -602,8 +628,9 @@ namespace warehouse
                 States = ReformingStates.Select;
                 buttonReformingPlatform.Text = "Выбрать платформы";
                 tableLayoutPanel1.Enabled = true;
-                buttonSetCargo.Enabled = false;
+                buttonTransferCargo.Enabled = false;
                 buttonSelectPlatform.Enabled = false;
+                buttonReformingPlatform.Enabled = false;
             }
         }
 
@@ -614,23 +641,92 @@ namespace warehouse
         }
 
         // функция для расчет количества груза которое требуется распределить между площадками
-        private void WithdrawCargo(int cargoValue, int? picketNumber)
+        private void WithdrawCargo(int cargoValue, int? picketNumber, bool transfer=false)
         {
             int?[] pickets = new int?[1];
             pickets[0] = picketNumber;
+            int?[] picketsFirstPlatform = new int?[1];
+            int?[] picketsSecondPlatform = new int?[1];
 
-            if (cargoValue > untrackedCargo)
+            if (transfer)
             {
-                cargo.Add(pickets, untrackedCargo);
-                untrackedCargo = 0;
+                for (int i = 0; i < dataGridView1.RowCount - 1; i++)
+                {
+                    int platformCargo = Int32.Parse(dataGridView1[0, i].FormattedValue.ToString());
+
+                    if (dataGridView1[1, i].FormattedValue.ToString().Contains(firstPlatformPicket.ToString()) &&
+                        dataGridView1[1, i].FormattedValue.ToString().Contains(picketNumber.ToString()))
+                    {
+                        picketsFirstPlatform[0] = firstPlatformPicket;
+                        cargo.Add(picketsFirstPlatform, platformCargo);
+                        break;
+                    }
+                    else if (dataGridView1[1, i].FormattedValue.ToString().Contains(firstPlatformPicket.ToString()))
+                    {
+                        if (cargoValue > platformCargo)
+                        {
+                            MessageBox.Show("Значени груза больше, чем на площадке",
+                                            "Сообщение",
+                                            MessageBoxButtons.OK,
+                                            MessageBoxIcon.Error,
+                                            MessageBoxDefaultButton.Button1,
+                                            MessageBoxOptions.DefaultDesktopOnly);
+                            firstPlatformPicket = null;
+                            break;
+                        }
+                        else
+                        {
+                            picketsFirstPlatform[0] = firstPlatformPicket;
+                            cargo.Add(picketsFirstPlatform, platformCargo - cargoValue);
+                        }
+                    }
+                    else if(dataGridView1[1, i].FormattedValue.ToString().Contains(picketNumber.ToString()))
+                    {
+                        picketsSecondPlatform[0] = picketNumber;
+                        cargo.Add(picketsSecondPlatform, platformCargo + cargoValue);
+                    }
+                }
             }
             else
-            {
-                cargo.Add(pickets, cargoValue);
-                untrackedCargo -= cargoValue;
-            }
+                if (cargoValue > untrackedCargo)
+                {
+                    cargo.Add(pickets, untrackedCargo);
+                    untrackedCargo = 0;
+                }
+                else
+                {
+                    cargo.Add(pickets, cargoValue);
+                    untrackedCargo -= cargoValue;
+                }
+            
             labelUntrackedCargo.Text = untrackedCargo.ToString();
             SetCargo(this, EventArgs.Empty);
+        }
+
+        // функция удаления платформ с таблицы отображения платформ
+        private void DeletePlatformsRowsGrid(List<int?[]> platforms)
+        {
+            // список в который мы заносим индексы строк для удаления
+            List<DataGridViewRow> list_rows = new List<DataGridViewRow>();
+
+            // проходим по всем площадкам запоминаем индексы, и прибавляем к грузу значение удаленной
+            // площадки
+            foreach (int?[] platform in platforms)
+                for (int i = 0; i < dataGridView1.RowCount; i++)
+                {
+                    if (dataGridView1[1, i].FormattedValue.ToString().Contains(string.Join(",", platform)))
+                    {
+                        list_rows.Add(dataGridView1.Rows[i]);
+                        untrackedCargo += Int32.Parse(dataGridView1[0, i].FormattedValue.ToString());
+                    }
+                }
+
+            // удаляем строки
+            foreach (DataGridViewRow row in list_rows)
+                dataGridView1.Rows.Remove(row);
+
+            dataGridView1.ClearSelection();
+            labelUntrackedCargo.Text = untrackedCargo.ToString();
         }
 
         // функция вызова модальных окон
@@ -670,6 +766,16 @@ namespace warehouse
                 }
 
                 Dialog.Dispose();
+            }
+            else if (States == ReformingStates.TransferCargo)
+            {
+                InputCargoModalForm Dialog = new InputCargoModalForm();
+
+                if (Dialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    int cargo = Int32.TryParse(Dialog.textBox1.Text, out int res) ? res : 0;
+                    WithdrawCargo(cargo, picketNumber, true);
+                }
             }
         }
     }
