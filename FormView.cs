@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using warehouse.Modals;
 
@@ -200,9 +195,16 @@ namespace warehouse
                             // оператор goto используется для выхода из вложенных циклов оператор break неуместен
                             goto exit;
                         }
-                exit:;
 
-                buttonReformingPlatform.Enabled = true;
+                exit:;
+                RefrehsGrid(RefrehType.Partially); // частичная очистка сетки
+                platforms = platformsToDelete.ToArray(); // удаление площадки
+                DeletePlatformsRowsGrid(platformsToDelete);
+                DeletePlatforms(this, EventArgs.Empty); // вызов события для представителя (Presenter)
+                rectangles.Clear();
+                platformsToDelete.Clear();
+                States = ReformingStates.Nothing; // вернуть в режим ожидания
+                buttonReformingPlatform.Text = "Расформировать платформы";
             }
             else if(States == ReformingStates.SettingCargo)
             {
@@ -600,7 +602,7 @@ namespace warehouse
                 RefrehsGrid(RefrehType.OnlyEnable);
                 cargo.Clear();
                 firstPlatformPicket = null;
-                buttonTransferCargo.Text = "Выберите площадки";
+                buttonTransferCargo.Text = "Закончить";
                 buttonReformingPlatform.Enabled = false;
                 buttonSelectPlatform.Enabled = false;
                 tableLayoutPanel1.Enabled = true;
@@ -611,18 +613,7 @@ namespace warehouse
         // обработчик кнопки "Расформировать платформы"
         private void buttonReformingPlatform_Click(object sender, EventArgs e)
         {
-            if(States == ReformingStates.Select)
-            {
-                RefrehsGrid(RefrehType.Partially); // частичная очистка сетки
-                platforms = platformsToDelete.ToArray(); // удаление площадки
-                DeletePlatformsRowsGrid(platformsToDelete);
-                DeletePlatforms(this, EventArgs.Empty); // вызов события для представителя (Presenter)
-                rectangles.Clear();
-                platformsToDelete.Clear();
-                States = ReformingStates.Nothing; // вернуть в режим ожидания
-                buttonReformingPlatform.Text = "Расформировать платформы";
-            }
-            else if(States == ReformingStates.Nothing)
+            if(States == ReformingStates.Nothing)
             {
                 RefrehsGrid(RefrehType.OnlyEnable);
                 States = ReformingStates.Select;
@@ -641,12 +632,13 @@ namespace warehouse
         }
 
         // функция для расчет количества груза которое требуется распределить между площадками
+        /// <param name="transfer">истинно, если требуется переместить груз</param>
         private void WithdrawCargo(int cargoValue, int? picketNumber, bool transfer=false)
         {
             int?[] pickets = new int?[1];
             pickets[0] = picketNumber;
-            int?[] picketsFirstPlatform = new int?[1];
-            int?[] picketsSecondPlatform = new int?[1];
+            int?[] picketsFirstPlatform = new int?[1]; // отдельные массивы для каждого пикета
+            int?[] picketsSecondPlatform = new int?[1]; // иначе исключение ограничения ключа
 
             if (transfer)
             {
@@ -654,11 +646,12 @@ namespace warehouse
                 {
                     int platformCargo = Int32.Parse(dataGridView1[0, i].FormattedValue.ToString());
 
+                    // случай когда перемещаем в груз в эту же площадку
                     if (dataGridView1[1, i].FormattedValue.ToString().Contains(firstPlatformPicket.ToString()) &&
                         dataGridView1[1, i].FormattedValue.ToString().Contains(picketNumber.ToString()))
                     {
                         picketsFirstPlatform[0] = firstPlatformPicket;
-                        cargo.Add(picketsFirstPlatform, platformCargo);
+                        cargo.Add(picketsFirstPlatform, platformCargo); // тогда просто устанавливаем груз 
                         break;
                     }
                     else if (dataGridView1[1, i].FormattedValue.ToString().Contains(firstPlatformPicket.ToString()))
@@ -677,18 +670,23 @@ namespace warehouse
                         else
                         {
                             picketsFirstPlatform[0] = firstPlatformPicket;
+                            // у первой площадки вычитаем груз
                             cargo.Add(picketsFirstPlatform, platformCargo - cargoValue);
                         }
                     }
                     else if(dataGridView1[1, i].FormattedValue.ToString().Contains(picketNumber.ToString()))
                     {
                         picketsSecondPlatform[0] = picketNumber;
+                        // у второй прибавляем
                         cargo.Add(picketsSecondPlatform, platformCargo + cargoValue);
                     }
                 }
             }
             else
-                if (cargoValue > untrackedCargo)
+                // если значение больше, то весь груз скидываем
+                // если остались не площадки, то оставляем пустыми
+                if (cargoValue > untrackedCargo) 
+
                 {
                     cargo.Add(pickets, untrackedCargo);
                     untrackedCargo = 0;
@@ -758,6 +756,13 @@ namespace warehouse
             {
                 // если ввода грузов
                 InputCargoModalForm Dialog = new InputCargoModalForm();
+
+                // если площадка одна весь груз переводим на нее
+                if (platformsToSetCargo.Count == 0)
+                {
+                    Dialog.textBox1.Text = untrackedCargo.ToString();
+                    Dialog.textBox1.Enabled = false;
+                }
 
                 if (Dialog.ShowDialog(this) == DialogResult.OK)
                 {
